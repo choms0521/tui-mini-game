@@ -1,0 +1,13 @@
+# Python virtual environment (shared across games; recreate with requirements.txt)
+.venv/
+
+# Python bytecode caches
+__pycache__/
+*.pyc
+*.pyo
+
+# OMC working state
+.omc/
+
+# macOS
+.DS_Store
