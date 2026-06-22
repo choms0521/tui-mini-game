@@ -1,0 +1,5 @@
+{
+  "name": "Tetris",
+  "description": "7-bag pieces, wall kicks, ghost, hard drop",
+  "entry": "main.py"
+}
