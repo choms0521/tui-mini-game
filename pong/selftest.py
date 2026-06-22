@@ -107,7 +107,7 @@ def test_score_when_ball_passes_right_paddle() -> None:
     check(not after.started, "after a point the ball is re-served (started=False)")
 
 
-def test_ball_reserved_from_center() -> None:
+def test_ball_re_served_from_center() -> None:
     """After scoring the ball should restart near the court center."""
     s = _state(bx=C.LEFT_PADDLE_X, by=C.PLAY_H - 1, vx=-1, vy=0, left_y=0)
     after = G.tick(s, _RNG)
@@ -234,7 +234,7 @@ def main() -> None:
         test_right_paddle_bounce,
         test_score_when_ball_passes_left_paddle,
         test_score_when_ball_passes_right_paddle,
-        test_ball_reserved_from_center,
+        test_ball_re_served_from_center,
         test_player_paddle_clamp_top,
         test_player_paddle_clamp_bottom,
         test_ai_moves_toward_ball,

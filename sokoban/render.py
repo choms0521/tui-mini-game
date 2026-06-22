@@ -75,7 +75,7 @@ def _render_cell(
         return _rgb(term, r, g, b, "$")
     if is_goal:
         r, g, b = _C_GOAL
-        return term.bold(_rgb(term, r, g, b, "◇"))
+        return term.bold(_rgb(term, r, g, b, "."))
     # Floor
     r, g, b = _C_FLOOR
     return _rgb(term, r, g, b, " ")
