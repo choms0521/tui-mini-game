@@ -1,0 +1,5 @@
+{
+  "name": "Snake",
+  "description": "Grow by eating, avoid the walls and yourself",
+  "entry": "main.py"
+}

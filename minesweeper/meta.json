@@ -1,0 +1,5 @@
+{
+  "name": "Minesweeper",
+  "description": "Clear the field without hitting a mine",
+  "entry": "main.py"
+}

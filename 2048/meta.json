@@ -1,0 +1,5 @@
+{
+  "name": "2048",
+  "description": "Slide and merge tiles to reach 2048",
+  "entry": "main.py"
+}
