@@ -113,7 +113,7 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
         f"SCR  {state.score:>5}",
         "",
         term.dim("arrows  move/atk"),
-        term.dim(">       descend"),
+        term.dim("reach > to descend"),
         term.dim("r       restart"),
         term.dim("q       quit"),
         "",

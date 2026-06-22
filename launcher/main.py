@@ -44,7 +44,7 @@ def _menu(term: Terminal, games: Sequence, selected: int) -> Tuple[str, int]:
                 selected = (selected - 1) % len(games)
             elif key.name == "KEY_DOWN":
                 selected = (selected + 1) % len(games)
-            elif key.name == "KEY_ENTER" or key in ("\n", "\r"):
+            elif key.name == "KEY_ENTER" or str(key) in ("\n", "\r"):
                 return "play", selected
             elif str(key).lower() == "q":
                 return "quit", selected

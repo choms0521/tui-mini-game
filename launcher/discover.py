@@ -65,4 +65,4 @@ def discover_games(root: Path) -> Tuple[Game, ...]:
         for folder in folders
         if (game := _game_from_folder(folder)) is not None
     )
-    return games
+    return tuple(sorted(games, key=lambda game: game.name.lower()))
