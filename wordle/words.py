@@ -118,7 +118,7 @@ WORDS: tuple[str, ...] = (
 def validate_word_list() -> None:
     """Raise ValueError if any entry is not exactly 5 uppercase ASCII letters."""
     for word in WORDS:
-        if len(word) != 5 or not word.isalpha() or not word.isupper():
+        if len(word) != 5 or not word.isascii() or not word.isalpha() or not word.isupper():
             raise ValueError(f"Invalid word list entry: {word!r}")
         if "Q" in word:
             raise ValueError(f"Word list must not contain Q (reserved for quit): {word!r}")

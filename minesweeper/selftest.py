@@ -102,10 +102,6 @@ def test_flood_fill_bounded_by_numbers() -> None:
 def test_flag_toggle_on_and_off() -> None:
     """toggle_flag adds a flag and then removes it on a second call."""
     state = _make_state([(2, 2)])
-    state = G.GameState(
-        **{**state.__dict__, "cursor": (1, 1)}
-    )
-    # Replace properly using dataclasses.replace.
     from dataclasses import replace
     state = replace(state, cursor=(1, 1))
 

@@ -76,7 +76,6 @@ def test_turn_valid() -> None:
 def test_turn_noop_when_game_over() -> None:
     rng = random.Random(3)
     state = G.new_game(rng)
-    over_state = G.advance.__func__ if False else None  # just to reference module
     import dataclasses
     over = dataclasses.replace(state, game_over=True)
     result = G.turn(over, G.UP)
