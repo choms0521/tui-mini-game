@@ -1,0 +1,5 @@
+{
+  "name": "Wordle",
+  "description": "Guess the hidden 5-letter word in six tries",
+  "entry": "main.py"
+}

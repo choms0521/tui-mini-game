@@ -1,0 +1,5 @@
+{
+  "name": "Space Invaders",
+  "description": "Shoot the descending alien fleet before it lands",
+  "entry": "main.py"
+}

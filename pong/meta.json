@@ -1,0 +1,5 @@
+{
+  "name": "Pong",
+  "description": "Paddle duel against a simple AI",
+  "entry": "main.py"
+}

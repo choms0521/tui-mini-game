@@ -7,10 +7,18 @@ state, flicker-free truecolor rendering, and headless self-tests.
 
 ## Games
 
-| Game                  | Folder      | Description                                  |
-| --------------------- | ----------- | -------------------------------------------- |
-| [Tetris](./tetris)    | `tetris/`   | 7-bag pieces, wall kicks, ghost, hard drop   |
-| [Breakout](./breakout)| `breakout/` | Brick breaker with paddle aim and levels     |
+| Game                              | Folder            | Description                                  |
+| --------------------------------- | ----------------- | -------------------------------------------- |
+| [Tetris](./tetris)                | `tetris/`         | 7-bag pieces, wall kicks, ghost, hard drop   |
+| [Breakout](./breakout)            | `breakout/`       | Brick breaker with paddle aim and levels     |
+| [Snake](./snake)                  | `snake/`          | Grow by eating, avoid the walls and yourself |
+| [2048](./2048)                    | `2048/`           | Slide and merge tiles to reach 2048          |
+| [Minesweeper](./minesweeper)      | `minesweeper/`    | Clear the field without hitting a mine       |
+| [Space Invaders](./space_invaders)| `space_invaders/` | Shoot the descending alien fleet             |
+| [Roguelike](./roguelike)          | `roguelike/`      | Explore the dungeon, fight monsters, descend |
+| [Wordle](./wordle)                | `wordle/`         | Guess the hidden 5-letter word in six tries  |
+| [Sokoban](./sokoban)              | `sokoban/`        | Push every box onto a goal                   |
+| [Pong](./pong)                    | `pong/`           | Paddle duel against a simple AI              |
 
 ## Setup
 
@@ -23,16 +31,37 @@ python3 -m venv .venv
 
 ## Play
 
-Each game has its own launcher that uses the shared `.venv`:
+The easiest way is the launcher — a menu that lists every game and runs the one
+you pick as a separate process, returning to the menu when you quit it:
+
+```bash
+./play.sh
+```
+
+Use up/down to select, enter to play, and `q` to quit (the menu, or a game back
+to the menu). You can still launch a single game directly:
 
 ```bash
 ./tetris/run.sh
 ./breakout/run.sh
 ```
 
+### Adding a game to the launcher
+
+Drop a folder next to the others with a runnable `main.py` and an optional
+`meta.json`; the launcher discovers it automatically on the next run:
+
+```json
+{ "name": "Snake", "description": "classic snake", "entry": "main.py" }
+```
+
+A folder with no `meta.json` still appears (named after the folder); a folder
+with no runnable entry is skipped.
+
 ## Tests
 
 ```bash
+.venv/bin/python launcher/selftest.py
 .venv/bin/python tetris/selftest.py
 .venv/bin/python breakout/selftest.py
 ```
@@ -48,6 +77,16 @@ Each game has its own launcher that uses the shared `.venv`:
 mini-game/
 ├── .venv/            # shared virtual environment (git-ignored)
 ├── requirements.txt  # shared dependencies (blessed)
-├── tetris/
-└── breakout/
+├── play.sh           # launcher menu (runs each game as a child process)
+├── launcher/         # menu: discovery + render + selftest
+├── tetris/           # each game folder: main.py + meta.json + selftest.py
+├── breakout/
+├── snake/
+├── 2048/
+├── minesweeper/
+├── space_invaders/
+├── roguelike/
+├── wordle/
+├── sokoban/
+└── pong/
 ```

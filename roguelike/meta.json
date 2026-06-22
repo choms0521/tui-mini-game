@@ -1,0 +1,5 @@
+{
+  "name": "Roguelike",
+  "description": "Explore the dungeon, fight monsters, descend",
+  "entry": "main.py"
+}

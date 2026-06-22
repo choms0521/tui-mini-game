@@ -1,0 +1,5 @@
+{
+  "name": "Sokoban",
+  "description": "Push every box onto a goal",
+  "entry": "main.py"
+}

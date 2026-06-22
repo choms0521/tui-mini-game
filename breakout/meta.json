@@ -1,0 +1,5 @@
+{
+  "name": "Breakout",
+  "description": "Brick breaker with paddle aim and levels",
+  "entry": "main.py"
+}
