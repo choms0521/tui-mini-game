@@ -11,3 +11,6 @@ __pycache__/
 
 # macOS
 .DS_Store
+
+# Copilot review cycle state (local only)
+.copilot-review-state.json
