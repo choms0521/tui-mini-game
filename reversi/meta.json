@@ -1,0 +1,5 @@
+{
+  "name": "Reversi",
+  "description": "Outflank and flip discs to own the board against the AI",
+  "entry": "main.py"
+}
