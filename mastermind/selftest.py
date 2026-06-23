@@ -38,11 +38,40 @@ def test_new_game_initial_state() -> None:
 
 
 def test_secret_deterministic() -> None:
+    # Same seed reproduces the same secret. We intentionally avoid asserting that
+    # two arbitrary seeds differ: that would rely on the seeds not colliding
+    # (1 / NUM_COLORS**CODE_LENGTH) and proves nothing about new_game's contract.
+    # test_new_game_uses_injected_rng verifies RNG usage robustly instead.
     s1 = G.new_game(random.Random(123)).secret
     s2 = G.new_game(random.Random(123)).secret
     check(s1 == s2, "same seed produces the same secret")
-    different = G.new_game(random.Random(124)).secret
-    check(s1 != different or s2 != different, "a different seed can produce a different secret")
+
+
+def test_new_game_uses_injected_rng() -> None:
+    """new_game must derive the secret from the injected RNG.
+
+    A recording fake proves the dependency directly instead of relying on two
+    arbitrary seeds happening to produce different secrets, which is brittle and
+    tests no real contract.
+    """
+    class RecordingRandom:
+        def __init__(self, values: list[int]) -> None:
+            self._values = list(values)
+            self.calls: list[tuple[int, int]] = []
+
+        def randint(self, a: int, b: int) -> int:
+            self.calls.append((a, b))
+            return self._values.pop(0)
+
+    sequence = [1, 2, 3, 4]
+    fake = RecordingRandom(sequence)
+    state = G.new_game(fake)
+    check(state.secret == tuple(sequence), "secret is built from the injected RNG's draws")
+    check(len(fake.calls) == G.CODE_LENGTH, "new_game draws exactly CODE_LENGTH times")
+    check(
+        all(call == (1, G.NUM_COLORS) for call in fake.calls),
+        "each draw spans the full color range 1..NUM_COLORS",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -293,6 +322,7 @@ def main() -> None:
     tests = [
         test_new_game_initial_state,
         test_secret_deterministic,
+        test_new_game_uses_injected_rng,
         test_score_all_exact,
         test_score_all_miss,
         test_score_all_partial,
