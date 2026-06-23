@@ -187,6 +187,8 @@ def place_at(state: GameState, pos: Pos) -> GameState:
     if state.game_over:
         return state
     row, col = pos
+    if not B.in_bounds(row, col):
+        return state
     if state.board[row][col] != B.EMPTY:
         return state
     state = replace(state, cursor=pos)
