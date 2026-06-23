@@ -85,11 +85,11 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
         "",
         term.color_rgb(80, 200, 255)("Player") + "  vs  " + term.color_rgb(255, 160, 80)("CPU"),
         "",
-        term.dim("up/w    paddle up"),
-        term.dim("dn/s    paddle down"),
-        term.dim("space   pause"),
-        term.dim("r       restart"),
-        term.dim("q       quit"),
+        term.dim("위/w    패들 위로"),
+        term.dim("아래/s  패들 아래"),
+        term.dim("space   시작/정지"),
+        term.dim("r       재시작"),
+        term.dim("q       종료"),
     ]
 
 

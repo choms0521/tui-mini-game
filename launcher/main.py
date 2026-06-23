@@ -54,8 +54,8 @@ def _report_crash(term: Terminal, game: D.Game, code: int) -> None:
     """Pause on a nonzero exit so the child's traceback stays readable."""
     print(
         term.normal
-        + f"\n'{game.name}' exited abnormally (code {code}). "
-        + "Press any key to return to the menu...",
+        + f"\n'{game.name}' 게임이 비정상 종료되었습니다(코드 {code}). "
+        + "아무 키나 누르면 메뉴로 돌아갑니다...",
         end="",
         flush=True,
     )
@@ -67,7 +67,7 @@ def run() -> None:
     term = Terminal()
     games = D.discover_games(ROOT)
     if not games:
-        print("No games found next to the launcher.")
+        print("런처 옆에서 게임을 찾지 못했습니다.")
         return
 
     selected = 0
@@ -83,7 +83,7 @@ def run() -> None:
         if result.returncode != 0:
             _report_crash(term, game, result.returncode)
 
-    print(term.normal + "Thanks for playing!\n", end="")
+    print(term.normal + "즐겁게 플레이하셨길 바랍니다!\n", end="")
 
 
 if __name__ == "__main__":

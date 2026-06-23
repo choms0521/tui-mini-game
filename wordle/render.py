@@ -82,11 +82,11 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
         "",
         f"Tries left  {tries_left:>2}",
         "",
-        term.dim("a-z    type letter"),
-        term.dim("bksp   delete"),
-        term.dim("enter  submit guess"),
-        term.dim("r      restart (end)"),
-        term.dim("q      quit"),
+        term.dim("a-z     글자 입력"),
+        term.dim("bksp    지우기"),
+        term.dim("enter   추측 제출"),
+        term.dim("r       재시작"),
+        term.dim("q       종료"),
     ]
     return lines
 
