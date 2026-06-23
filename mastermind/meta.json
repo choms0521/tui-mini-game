@@ -1,0 +1,5 @@
+{
+  "name": "Mastermind",
+  "description": "Crack the hidden color code from exact and partial hints",
+  "entry": "main.py"
+}
