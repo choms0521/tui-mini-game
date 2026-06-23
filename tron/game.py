@@ -197,17 +197,17 @@ def _candidate_dirs(current: Direction) -> List[Direction]:
     return [d for d in B.DIRECTIONS if not _is_reverse(current, d)]
 
 
-def _is_fatal(next_cell: Pos, blocked: FrozenSet[Pos], opp_pos: Pos) -> bool:
+def _is_fatal(next_cell: Pos, blocked: FrozenSet[Pos], opp_next: Pos) -> bool:
     """Mirror tick's death rule for a single candidate next cell.
 
     *blocked* is the set of cells the AI cannot enter (current walls plus the
     opponent's just-vacated cell, since both cycles move on the same tick).
-    Entering the opponent's next cell (*opp_pos* here) is a head-on collision.
+    Entering the opponent's next cell (*opp_next* here) is a head-on collision.
     """
     return (
         not B.in_bounds(*next_cell)
         or next_cell in blocked
-        or next_cell == opp_pos
+        or next_cell == opp_next
     )
 
 

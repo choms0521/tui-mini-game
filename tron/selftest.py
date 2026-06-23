@@ -188,10 +188,9 @@ def test_winner_player_when_only_one_alive() -> None:
 
 def test_ai_avoids_immediate_death() -> None:
     """The AI must not pick a direction that is immediately fatal when a safe one exists."""
-    # AI at (1,1) heading DOWN. Wall it in on three sides except one open cell.
-    # Walls just below, to the left would be reverse anyway; block RIGHT and DOWN,
-    # leaving UP as the only safe non-reversing move (LEFT is the reverse of... dir is DOWN,
-    # reverse is UP, so candidates are DOWN, LEFT, RIGHT). Make DOWN and RIGHT fatal.
+    # AI at (1,1) heading DOWN, so the reverse (UP) is excluded and the
+    # non-reversing candidates are DOWN, LEFT, RIGHT. Walls just below and to
+    # the right make DOWN and RIGHT fatal, leaving LEFT as the only safe move.
     walls = frozenset({(2, 1), (1, 2)})  # below and to the right of the AI head
     state = _make(
         walls=walls,

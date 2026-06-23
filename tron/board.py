@@ -12,6 +12,7 @@ WIDTH = 40   # columns of the playfield (not counting the border)
 HEIGHT = 20  # rows of the playfield (not counting the border)
 
 Pos = Tuple[int, int]
+Direction = Tuple[int, int]  # a (drow, dcol) unit step; same shape as Pos, distinct in intent
 
 # Direction constants as (drow, dcol) unit vectors.
 UP    = (-1,  0)
@@ -27,7 +28,7 @@ def in_bounds(row: int, col: int) -> bool:
     return 0 <= row < HEIGHT and 0 <= col < WIDTH
 
 
-def add(pos: Pos, direction: Pos) -> Pos:
+def add(pos: Pos, direction: Direction) -> Pos:
     """Return the cell reached by stepping one unit in *direction*."""
     return (pos[0] + direction[0], pos[1] + direction[1])
 
