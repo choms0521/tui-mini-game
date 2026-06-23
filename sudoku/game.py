@@ -114,6 +114,12 @@ def clear_value(state: GameState) -> GameState:
     return _with_value(state, r, c, B.EMPTY)
 
 
-def restart(rng: random.Random, state: GameState, givens: int = DEFAULT_GIVENS) -> GameState:
-    """Start a brand new puzzle (used for the 'r' / new-puzzle action)."""
+def restart(rng: random.Random, _state: GameState, givens: int = DEFAULT_GIVENS) -> GameState:
+    """Start a brand new puzzle (used for the 'r' / new-puzzle action).
+
+    The current state is accepted so this matches the ``restart(rng, state)``
+    call convention shared with the other games, but it is intentionally unused:
+    a restart always builds a fresh puzzle from scratch, with difficulty set by
+    *givens*.
+    """
     return new_game(rng, givens=givens)

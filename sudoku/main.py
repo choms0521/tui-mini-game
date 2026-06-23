@@ -32,7 +32,9 @@ def _map_key(key) -> str | None:
         return "left"
     if key.name == "KEY_RIGHT":
         return "right"
-    if key.name in ("KEY_BACKSPACE", "KEY_DELETE"):
+    # Backspace can arrive as KEY_BACKSPACE, KEY_DELETE, or the raw DEL byte
+    # ("\x7f") depending on the terminal, so accept all three for the clear action.
+    if key.name in ("KEY_BACKSPACE", "KEY_DELETE") or str(key) == "\x7f":
         return "clear"
 
     char = str(key)

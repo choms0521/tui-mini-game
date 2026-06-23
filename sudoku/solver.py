@@ -46,8 +46,11 @@ def _candidates(grid: MutableGrid, row: int, col: int) -> List[int]:
 def _find_best_cell(grid: MutableGrid) -> Optional[Tuple[int, int, List[int]]]:
     """Return the empty cell with the fewest candidates (MRV heuristic).
 
-    Returns ``None`` when the grid is already full. When a cell has zero
-    candidates it is returned immediately so the caller can prune that branch.
+    Returns ``None`` when the grid is already full. A cell with one or fewer
+    candidates is returned immediately: zero candidates is a dead end the caller
+    prunes right away, and a single candidate is a forced move with nothing to
+    gain by scanning further. Every other empty cell is compared so the one with
+    the fewest candidates wins.
     """
     best: Optional[Tuple[int, int, List[int]]] = None
     for r in range(B.SIZE):
@@ -151,9 +154,12 @@ def generate_puzzle(
     """Generate a puzzle with a unique solution and its full solution.
 
     *givens* is the target number of filled cells (difficulty: fewer givens is
-    harder). Cells are removed in a random order; a removal is kept only when the
-    puzzle still has exactly one solution, so the returned puzzle is always
-    proper. The target is a goal, not a guarantee — removal stops early if no
+    harder). It is clamped to the range ``[B.SIZE, B.SIZE * B.SIZE]`` (9..81), so
+    a request outside that range is pulled to the nearest bound. Cells are
+    removed in a random order; a removal is kept only when the puzzle still has
+    exactly one solution, so the returned puzzle is always proper. The target is
+    a goal, not a guarantee — the uniqueness check (not the clamp) is what
+    ultimately bounds how few givens remain, since removal stops early once no
     further cell can be cleared without introducing a second solution.
 
     Returns ``(puzzle, solution)`` as immutable grids.
