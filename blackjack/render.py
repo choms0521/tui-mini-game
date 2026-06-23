@@ -51,10 +51,11 @@ def _suit_rgb(card: C.Card) -> tuple:
     return _RED_RGB if card[1] in (1, 2) else _BLACK_RGB
 
 
-def card_lines(term: Terminal, card: Optional[C.Card], face_up: bool) -> List[str]:
+def card_lines(term: Terminal, card: C.Card, face_up: bool) -> List[str]:
     """Return the CARD_HEIGHT strings that draw one card.
 
-    When *face_up* is False the rank/suit are hidden behind a hatched back.
+    A real *card* is always supplied; when *face_up* is False its rank and suit
+    are hidden behind a hatched back (the card itself is then unused).
     """
     if not face_up:
         color = term.color_rgb(*_BACK_RGB)

@@ -11,6 +11,7 @@ from __future__ import annotations
 import io
 import random
 from contextlib import redirect_stdout
+from dataclasses import replace
 
 import cards as C
 import game as G
@@ -273,7 +274,7 @@ def test_initial_deal_sizes() -> None:
 
 def test_hit_immutability() -> None:
     deck = (FIVE_D, TWO_C, SEVEN_S)
-    player = (TWO_C, SEVEN_S)
+    player = (NINE_H, SEVEN_C)
     dealer = (TEN_D, SIX_S)
     state = G.GameState(
         deck=deck, player_hand=player, dealer_hand=dealer,
@@ -348,8 +349,8 @@ def test_render_panel_position_is_fixed() -> None:
         phase=G.PHASE_PLAYER, result=None, game_over=False,
     )
     two = base
-    three = G.GameState(**{**base.__dict__, "player_hand": (ACE_S, FIVE_D, TWO_C)})
-    four = G.GameState(**{**base.__dict__, "player_hand": (ACE_S, FIVE_D, TWO_C, FIVE_C)})
+    three = replace(base, player_hand=(ACE_S, FIVE_D, TWO_C))
+    four = replace(base, player_hand=(ACE_S, FIVE_D, TWO_C, FIVE_C))
 
     # CONTENT_WIDTH is a module constant, so panel_x is independent of the hand.
     check(R.CONTENT_WIDTH == R._hand_width(R.LAYOUT_CARDS), "content width is the fixed layout width")

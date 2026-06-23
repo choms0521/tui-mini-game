@@ -16,7 +16,7 @@ RANKS = tuple(range(1, 14))   # 1..13
 SUITS = tuple(range(0, 4))    # 0..3
 
 # Display glyphs. Ranks use the short labels seen on real cards; suits use the
-# standard Unicode card-suit symbols (ASCII-safe, not CJK).
+# standard Unicode card-suit symbols (non-ASCII).
 RANK_LABELS = {
     1: "A",
     2: "2", 3: "3", 4: "4", 5: "5", 6: "6",
