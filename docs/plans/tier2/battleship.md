@@ -38,7 +38,7 @@ GameState:
   ai_ships:      tuple[Ship, ...]
   player_shots:  frozenset[Pos]     # 사람이 적 보드에 쏜 칸
   ai_shots:      frozenset[Pos]     # AI가 내 보드에 쏜 칸
-  ai_hunt:       tuple[Pos, ...]    # AI target 모드의 후보 큐(결정성 위해 명시 보관)
+  ai_target_queue: tuple[Pos, ...]  # AI target 모드의 후보 큐(결정성 위해 명시 보관)
   cursor:        Pos                # 추적판 위 조준 위치
   current_turn:  int                # PLAYER / AI
   game_over:     bool
