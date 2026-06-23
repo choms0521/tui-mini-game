@@ -57,8 +57,10 @@ def selector_line(term: Terminal, state: G.GameState, selected_col: int) -> str:
     """Render the arrow row that marks the column the human is aiming at."""
     cells: List[str] = []
     for c in range(B.COLS):
-        if c == selected_col and not state.game_over:
-            cells.append(" " + _disc_color(term, state.current_player) + " ")
+        # Only mark the aim column on the human's turn; during the AI's turn the
+        # human is not aiming, so the row stays blank to match the docstring.
+        if c == selected_col and not state.game_over and state.current_player == G.HUMAN:
+            cells.append(" " + _disc_color(term, G.HUMAN) + " ")
         else:
             cells.append("   ")
     return (" " * _CELL_SEP).join(cells)
@@ -89,7 +91,7 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
         f"AI     {term.color_rgb(*_AI_RGB)('●')} yellow",
         "",
         term.dim("left/right  aim"),
-        term.dim("enter/space drop"),
+        term.dim("enter/space/down drop"),
         term.dim("r      restart"),
         term.dim("q      quit"),
     ]
