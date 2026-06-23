@@ -56,7 +56,11 @@ def _pad(term: Terminal, text: str, width: int) -> str:
 
 
 def _lane_bg(term: Terminal, kind: str, is_goal: bool = False) -> str:
-    """Return a terminal colour prefix for a lane's background character."""
+    """Return a terminal background-colour prefix for a lane's filler cell.
+
+    The lane filler glyphs are spaces, so the colour must be applied as a
+    background (``on_color_rgb``); a foreground colour on a space is invisible.
+    """
     if is_goal:
         r, g, b = _GOAL_BG
     elif kind == "road":
@@ -65,7 +69,7 @@ def _lane_bg(term: Terminal, kind: str, is_goal: bool = False) -> str:
         r, g, b = _RIVER_BG
     else:
         r, g, b = _SAFE_BG
-    return term.color_rgb(r, g, b)
+    return term.on_color_rgb(r, g, b)
 
 
 def field_lines(term: Terminal, state: G.GameState) -> List[str]:
