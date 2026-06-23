@@ -126,11 +126,13 @@ def _flips_in_direction(
 def flips_for_move(board: Board, pos: B.Pos, player: int) -> List[B.Pos]:
     """Return every disc *player* would flip by placing at *pos*.
 
-    Returns an empty list when *pos* is occupied or outflanks nothing, i.e. the
-    move is illegal exactly when this list is empty.
+    Returns an empty list when *pos* is out of bounds, occupied, or outflanks
+    nothing, i.e. the move is illegal exactly when this list is empty. The
+    bounds guard makes an out-of-range *pos* a rejected move rather than an
+    ``IndexError`` (or a silent wrap on a negative index).
     """
     row, col = pos
-    if board[row][col] != B.EMPTY:
+    if not B.in_bounds(row, col) or board[row][col] != B.EMPTY:
         return []
     captured: List[B.Pos] = []
     for direction in B.DIRECTIONS:

@@ -73,6 +73,14 @@ def test_non_outflanking_rejected() -> None:
     # The centre cells are occupied, so they cannot be played onto.
     check(G.flips_for_move(board, (3, 3), G.BLACK) == [], "occupied cell is illegal")
     check((0, 0) not in G.legal_moves(board, G.BLACK), "legal_moves omits non-outflanking cells")
+    # Out-of-range positions are rejected as illegal (empty flips) rather than
+    # raising IndexError or silently wrapping on a negative index.
+    check(G.flips_for_move(board, (-1, 0), G.BLACK) == [], "negative row is illegal, not a wrap")
+    check(G.flips_for_move(board, (B.SIZE, 0), G.BLACK) == [], "row past the edge is illegal, not a crash")
+    check(G.flips_for_move(board, (0, B.SIZE), G.BLACK) == [], "col past the edge is illegal, not a crash")
+    # place() honors the same contract: an out-of-range move returns the same state.
+    state = G.new_game()
+    check(G.place(state, (B.SIZE, B.SIZE)) is state, "place() rejects an out-of-range move unchanged")
 
 
 def test_single_direction_flip() -> None:
