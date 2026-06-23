@@ -29,7 +29,6 @@ _ROW_WIDTH = B.COLS * (_CELL_WIDTH + _CELL_SEP) - _CELL_SEP
 _HUMAN_RGB = (220, 70, 70)     # red
 _AI_RGB = (235, 200, 60)       # yellow
 _EMPTY_RGB = (60, 60, 70)      # dim slot
-_FRAME_RGB = (90, 110, 200)    # board frame tint
 
 
 def _cell(term: Terminal, value: int) -> str:
