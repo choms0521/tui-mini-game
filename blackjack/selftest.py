@@ -43,6 +43,22 @@ def check(condition: bool, label: str) -> None:
     print(f"ok - {label}")
 
 
+class _StackedDeck:
+    """A ``random.Random`` stand-in whose ``shuffle`` stacks a known deck top.
+
+    ``new_game`` deals player[0], dealer[0], player[1], dealer[1] from the front
+    of the shuffled deck, so placing chosen cards at the front makes the initial
+    deal deterministic without depending on a specific RNG implementation.
+    """
+
+    def __init__(self, front: tuple) -> None:
+        self._front = list(front)
+
+    def shuffle(self, seq: list) -> None:
+        rest = [card for card in seq if card not in self._front]
+        seq[:] = self._front + rest
+
+
 # ---------------------------------------------------------------------------
 # Hand value: Ace soft -> hard
 # ---------------------------------------------------------------------------
@@ -117,23 +133,16 @@ def test_natural_resolution_dealer_blackjack_wins() -> None:
 
 
 def test_new_game_settles_naturals_immediately() -> None:
-    # Arrange a deck whose first four cards (player[0], dealer[0], player[1],
-    # dealer[1]) give the player a natural and the dealer an ordinary hand.
-    # new_game shuffles, so we feed a Random whose shuffle is the identity for
-    # the front by constructing the state path through a controlled deck check:
-    # easier to assert via resolve at deal -> use a seed and confirm the rule
-    # holds whenever a natural appears. Here we directly verify the deal logic
-    # by checking that a dealt blackjack ends the game.
-    found = False
-    for seed in range(200):
-        state = G.new_game(random.Random(seed))
-        if G.is_blackjack(state.player_hand) or G.is_blackjack(state.dealer_hand):
-            found = True
-            check(state.game_over, f"seed {seed}: natural at deal sets game_over")
-            check(state.phase == G.PHASE_RESULT, f"seed {seed}: natural at deal -> result phase")
-            check(state.result is not None, f"seed {seed}: natural at deal has a result")
-            break
-    check(found, "at least one seed dealt a natural to exercise immediate resolution")
+    # Stack the deck deterministically instead of scanning RNG seeds (whose
+    # output is not guaranteed stable across Python implementations). new_game
+    # deals player[0], dealer[0], player[1], dealer[1] from the front, so this
+    # front gives the player a natural (A+K) and the dealer an ordinary 17 (9+8).
+    rng = _StackedDeck((ACE_S, NINE_S, KING_S, EIGHT_C))
+    state = G.new_game(rng)
+    check(G.is_blackjack(state.player_hand), "the stacked deal gives the player a natural")
+    check(state.game_over, "a natural at the deal sets game_over")
+    check(state.phase == G.PHASE_RESULT, "a natural at the deal moves to the result phase")
+    check(state.result is not None, "a natural at the deal has a result")
 
 
 # ---------------------------------------------------------------------------
@@ -354,8 +363,13 @@ def test_render_panel_position_is_fixed() -> None:
 
     # CONTENT_WIDTH is a module constant, so panel_x is independent of the hand.
     check(R.CONTENT_WIDTH == R._hand_width(R.LAYOUT_CARDS), "content width is the fixed layout width")
-    widths = {len(s.player_hand): R.CONTENT_WIDTH for s in (two, three, four)}
-    check(len(set(widths.values())) == 1, "card-area width is identical for 2, 3, and 4 card hands")
+    # Each realistic hand must fit inside the fixed card area; because the area
+    # never shrinks to the hand, the panel offset stays put as the hand grows.
+    # Exercise the real _hand_width(n), not the constant, so a layout regression
+    # would actually fail this check.
+    for s in (two, three, four):
+        n = len(s.player_hand)
+        check(R._hand_width(n) <= R.CONTENT_WIDTH, f"a {n}-card hand fits within the fixed card area")
     check(
         R.CONTENT_WIDTH >= R._hand_width(4),
         "fixed width reserves room for at least a four-card hand",

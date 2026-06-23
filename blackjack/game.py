@@ -16,9 +16,10 @@ from typing import Optional, Tuple
 
 from cards import Card, card_value, full_deck
 
-# Phases of a single hand.
+# Phases of a single hand. The dealer draws synchronously inside ``stand``, so a
+# hand is only ever observably in "player" or "result" -- there is no separate
+# dealer phase to model.
 PHASE_PLAYER = "player"   # awaiting the player's hit/stand
-PHASE_DEALER = "dealer"   # dealer is drawing (usually transient)
 PHASE_RESULT = "result"   # hand settled, result is final
 
 # Result values.
@@ -39,7 +40,7 @@ class GameState:
     player_hand -- the player's cards.
     dealer_hand -- the dealer's cards; the second card is hidden during the
                    player's turn (a render-only concern, not stored here).
-    phase       -- "player", "dealer", or "result".
+    phase       -- "player" or "result".
     result      -- "win" | "lose" | "push" | "blackjack", or None until settled.
     game_over   -- True once the hand is settled.
     """
