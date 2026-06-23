@@ -87,9 +87,9 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
         "Score",
         term.bold(f"{state.score:>10}"),
         "",
-        term.dim("arrows  slide"),
-        term.dim("r       restart"),
-        term.dim("q       quit"),
+        term.dim("방향키  이동"),
+        term.dim("r       재시작"),
+        term.dim("q       종료"),
     ]
     return lines
 

@@ -29,7 +29,7 @@ RGB = {
 BOARD_X = 3
 BOARD_Y = 1
 PANEL_GAP = 4
-PANEL_WIDTH = 18
+PANEL_WIDTH = 20
 
 _CELL_WIDTH = B.WIDTH * 2 + 2  # two columns per cell plus the two side borders
 
@@ -104,14 +104,14 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
     lines.extend(
         [
             "",
-            term.dim("left/right move"),
-            term.dim("up / x  rotate"),
-            term.dim("z       rotate-"),
-            term.dim("down    soft drop"),
-            term.dim("space   hard drop"),
-            term.dim("p       pause"),
-            term.dim("r       restart"),
-            term.dim("q       quit"),
+            term.dim("좌우     이동"),
+            term.dim("위/x    회전"),
+            term.dim("z       반대 회전"),
+            term.dim("아래    천천히 내림"),
+            term.dim("space   즉시 내림"),
+            term.dim("p       일시정지"),
+            term.dim("r       재시작"),
+            term.dim("q       종료"),
         ]
     )
     return lines

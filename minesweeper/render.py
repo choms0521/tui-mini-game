@@ -101,12 +101,12 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
         f"Mines  {mines_remaining:>4}",
         f"Flags  {len(state.flagged):>4}",
         "",
-        term.dim("arrows  move"),
-        term.dim("space   reveal"),
-        term.dim("enter   reveal"),
-        term.dim("f       flag"),
-        term.dim("r       restart"),
-        term.dim("q       quit"),
+        term.dim("방향키  이동"),
+        term.dim("space   열기"),
+        term.dim("enter   열기"),
+        term.dim("f       깃발"),
+        term.dim("r       재시작"),
+        term.dim("q       종료"),
     ]
 
     if state.won:

@@ -115,10 +115,10 @@ def panel_lines(term: Terminal, state: G.SokobanState) -> List[str]:
         f"Boxes on goal",
         f"  {on_goal:>2} / {total_goals:<2}",
         "",
-        term.dim("arrows  move/push"),
-        term.dim("u       undo"),
-        term.dim("r       restart"),
-        term.dim("q       quit"),
+        term.dim("방향키  이동/밀기"),
+        term.dim("u       되돌리기"),
+        term.dim("r       재시작"),
+        term.dim("q       종료"),
     ]
     return lines
 

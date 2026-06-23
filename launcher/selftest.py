@@ -96,7 +96,7 @@ def test_menu_renders() -> None:
 def test_empty_menu_renders() -> None:
     term = Terminal(force_styling=True)
     lines = R.menu_lines(term, (), selected=0)
-    check(any("no games" in line.lower() for line in lines), "empty menu shows a hint")
+    check(any("찾지 못" in line for line in lines), "empty menu shows a hint")
 
 
 def main() -> None:

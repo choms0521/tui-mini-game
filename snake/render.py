@@ -71,10 +71,10 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
         "",
         f"Length  {length:>3}",
         "",
-        term.dim("arrows  turn"),
-        term.dim("p       pause"),
-        term.dim("r       restart"),
-        term.dim("q       quit"),
+        term.dim("방향키  방향 전환"),
+        term.dim("p       일시정지"),
+        term.dim("r       재시작"),
+        term.dim("q       종료"),
     ]
     return lines
 
