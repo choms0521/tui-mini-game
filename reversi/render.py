@@ -19,6 +19,11 @@ BOARD_X = 3
 BOARD_Y = 2
 PANEL_GAP = 4
 PANEL_WIDTH = 24
+# The panel grows by two lines when a "pass" notice is shown. panel_lines()
+# always pads to this fixed height so the taller frame's trailing control lines
+# get overwritten with blanks once the notice disappears (there is no
+# full-screen clear between frames). Bump this if the panel gains more lines.
+PANEL_HEIGHT = 12
 
 # Each cell is 3 chars wide with no separator: the green background tiles join
 # into one continuous board.
@@ -87,7 +92,13 @@ def board_lines(term: Terminal, state: G.GameState) -> List[str]:
 
 
 def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
-    """Return the right-side info panel as a list of strings."""
+    """Return the right-side info panel, padded to a fixed ``PANEL_HEIGHT``.
+
+    The optional "pass" notice makes the panel vary in length between frames.
+    Padding the result to a constant height lets :func:`draw` overwrite the
+    trailing rows with blanks, so no stale text lingers when the notice
+    disappears (the frame is drawn without a full-screen clear).
+    """
     black, white = G.disc_counts(state.board)
 
     if state.game_over:
@@ -121,6 +132,10 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
         term.dim("r       재시작"),               # restart
         term.dim("q       종료"),                     # quit
     ])
+
+    # Pad to a constant height so a shorter frame overwrites the taller one.
+    if len(lines) < PANEL_HEIGHT:
+        lines.extend([""] * (PANEL_HEIGHT - len(lines)))
     return lines
 
 

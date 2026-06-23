@@ -236,6 +236,7 @@ def test_render_builds_strings() -> None:
 
     panel = R.panel_lines(term, state)
     check(any("REVERSI" in line for line in panel), "panel shows the title")
+    check(len(panel) == R.PANEL_HEIGHT, "panel pads to a fixed height without a pass notice")
 
     # When the side that is not to move has no legal move, the panel surfaces it.
     no_white = _b([
@@ -251,6 +252,9 @@ def test_render_builds_strings() -> None:
     pass_state = _state(no_white, G.BLACK)  # black to move; white has no move
     pass_panel = R.panel_lines(term, pass_state)
     check(any("passes" in line for line in pass_panel), "panel surfaces a pass notice")
+    # Same fixed height with the notice present, so a shrinking panel leaves no
+    # stale control lines behind between frames.
+    check(len(pass_panel) == R.PANEL_HEIGHT, "panel keeps the fixed height with a pass notice")
 
     over = G.GameState(
         board=state.board, current_player=G.HUMAN, game_over=True,
