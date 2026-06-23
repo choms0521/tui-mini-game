@@ -64,10 +64,13 @@ def is_legal(grid: Grid, row: int, col: int, value: int) -> bool:
     """True when placing *value* at (row, col) breaks no Sudoku constraint.
 
     A value already sitting in the same cell is ignored (a cell never conflicts
-    with itself). EMPTY (0) is always legal because it represents a blank.
+    with itself). EMPTY (0) is always legal because it represents a blank, while
+    any value outside the 1..SIZE digit domain is always illegal.
     """
     if value == EMPTY:
         return True
+    if not (1 <= value <= SIZE):
+        return False  # outside the 1..SIZE digit domain — never a legal placement
     for c in range(SIZE):
         if c != col and grid[row][c] == value:
             return False

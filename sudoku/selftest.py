@@ -109,6 +109,10 @@ def test_is_legal_row_col_box() -> None:
     # 1 fits at (0,2): not in its row, column, or box.
     check(B.is_legal(grid, 0, 2, 1), "a non-conflicting digit is legal")
     check(B.is_legal(grid, 0, 2, B.EMPTY), "EMPTY is always legal")
+    # Out-of-range digits are outside the 1..SIZE domain and never legal, even
+    # when they duplicate nothing on the board.
+    check(not B.is_legal(grid, 0, 2, B.SIZE + 1), "a too-large digit is illegal")
+    check(not B.is_legal(grid, 0, 2, -1), "a negative digit is illegal")
 
 
 def test_conflict_detection() -> None:
@@ -122,6 +126,11 @@ def test_conflict_detection() -> None:
     conflict = B.conflicts(bad)
     check((0, 0) in conflict and (0, 1) in conflict,
           "both members of a row duplicate are flagged as conflicts")
+
+    # An out-of-range digit is malformed, so conflicts() must flag it too (this
+    # is what lets the solver's _is_consistent() reject such grids).
+    oor = ((B.SIZE + 1,) + grid[0][1:],) + grid[1:]
+    check((0, 0) in B.conflicts(oor), "an out-of-range digit is flagged as a conflict")
 
 
 def test_is_complete() -> None:
@@ -214,6 +223,19 @@ def test_uniqueness_early_exit_caps_count() -> None:
     blank = _to_grid(["." * 9 for _ in range(9)])
     count = S.count_solutions(blank, limit=2)
     check(count == 2, "count_solutions caps at the limit (early exit)")
+
+
+def test_count_solutions_clamped_to_limit() -> None:
+    # The result is clamped to [0, limit]: sibling branches must not sum past the
+    # cap. The under-constrained band admits many completions, so the count must
+    # equal exactly the limit, never more.
+    rows = ["." * 9, "." * 9] + _SOLUTION_ROWS[2:]
+    loose = _to_grid(rows)
+    check(S.count_solutions(loose, limit=2) == 2,
+          "count_solutions clamps a multi-solution grid to exactly limit=2")
+    blank = _to_grid(["." * 9 for _ in range(9)])
+    check(S.count_solutions(blank, limit=1) == 1,
+          "count_solutions clamps to limit=1")
 
 
 # ---------------------------------------------------------------------------
@@ -362,6 +384,7 @@ def main() -> None:
         test_uniqueness_underconstrained,
         test_uniqueness_rejects_invalid_full_grid,
         test_uniqueness_early_exit_caps_count,
+        test_count_solutions_clamped_to_limit,
         test_generated_puzzle_is_proper,
         test_generation_deterministic,
         test_new_game_state,

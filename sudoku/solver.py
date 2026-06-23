@@ -92,19 +92,16 @@ def _fill(grid: MutableGrid, rng: Optional[random.Random]) -> bool:
 def _is_consistent(grid: B.Grid) -> bool:
     """True when *grid* is free of malformed input.
 
-    Every filled cell must hold a digit in ``1..B.SIZE`` and no filled cell may
-    duplicate another in its row, column, or box; empty cells are ignored. The
-    search only ever writes non-conflicting digits into empty cells, so an
-    inconsistent grid (conflicting givens or an out-of-range digit) can never
-    become valid. ``solve`` and ``count_solutions`` reject such grids up front so
-    their documented "valid solution" / uniqueness contracts stay honest. Note
-    the current callers only pass blank or generated-from-valid grids, so this is
-    contract hardening rather than a fix for a path the game exercises.
+    Validity is delegated to :func:`board.conflicts`, which flags every filled
+    cell that breaks a Sudoku constraint — a duplicate in its row, column, or
+    box, or (via ``board.is_legal``) a digit outside the ``1..B.SIZE`` domain;
+    empty cells are ignored. The search only ever writes non-conflicting digits
+    into empty cells, so an inconsistent grid can never become valid. ``solve``
+    and ``count_solutions`` reject such grids up front so their documented "valid
+    solution" / uniqueness contracts stay honest. Note the current callers only
+    pass blank or generated-from-valid grids, so this is contract hardening
+    rather than a fix for a path the game exercises.
     """
-    for row in grid:
-        for value in row:
-            if value != B.EMPTY and not (1 <= value <= B.SIZE):
-                return False
     return not B.conflicts(grid)
 
 
@@ -125,11 +122,14 @@ def solve(grid: B.Grid, rng: Optional[random.Random] = None) -> Optional[B.Grid]
 
 
 def _count_solutions(grid: MutableGrid, limit: int) -> int:
-    """Count solutions of *grid* in place, stopping as soon as *limit* is hit.
+    """Count solutions of *grid* in place, clamped to ``[0, limit]``.
 
-    Early exit is essential for speed: the uniqueness check only needs to know
-    whether a second solution exists, so ``limit=2`` returns the moment a second
-    completion is found instead of enumerating the whole solution space.
+    Each branch is searched with only the remaining budget (``limit - total``)
+    and the early exit returns ``limit`` the moment the cap is reached, so the
+    result never overshoots the cap by summing sibling branches. Early exit is
+    essential for speed: the uniqueness check only needs to know whether a second
+    solution exists, so ``limit=2`` returns the moment a second completion is
+    found instead of enumerating the whole solution space.
     """
     target = _find_best_cell(grid)
     if target is None:
@@ -140,10 +140,10 @@ def _count_solutions(grid: MutableGrid, limit: int) -> int:
     total = 0
     for value in candidates:
         grid[row][col] = value
-        total += _count_solutions(grid, limit)
+        total += _count_solutions(grid, limit - total)
         grid[row][col] = B.EMPTY
         if total >= limit:
-            return total  # early exit — no need to keep searching
+            return limit  # reached the cap — clamp and stop searching
     return total
 
 
