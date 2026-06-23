@@ -199,8 +199,9 @@ def _hunt_target(rng: random.Random, shots: FrozenSet[B.Pos]) -> B.Pos:
     every possible ship. When the parity class is exhausted we fall back to any
     remaining cell so the AI never returns an already-shot square.
     """
-    parity = [pos for pos in _unshot_cells(shots) if (pos[0] + pos[1]) % 2 == 0]
-    pool = parity if parity else _unshot_cells(shots)
+    cells = _unshot_cells(shots)
+    parity = [pos for pos in cells if (pos[0] + pos[1]) % 2 == 0]
+    pool = parity if parity else cells
     return rng.choice(pool)
 
 
@@ -236,13 +237,31 @@ def _enqueue_neighbours(
     return queue + tuple(fresh)
 
 
-def _prune_sunk(queue: Tuple[B.Pos, ...], ship: Ship) -> Tuple[B.Pos, ...]:
-    """Drop *ship*'s cells from the target queue once it is confirmed sunk.
+def _prune_sunk(
+    queue: Tuple[B.Pos, ...],
+    player_ships: Tuple[Ship, ...],
+    shots: FrozenSet[B.Pos],
+) -> Tuple[B.Pos, ...]:
+    """Drop target candidates orphaned when a ship is confirmed sunk.
 
-    Returning to a clean queue makes the AI fall back to hunt mode rather than
-    chasing dead candidates around an already-destroyed ship.
+    A candidate is only worth keeping while it still borders a hit on a ship that
+    has not yet sunk. After a sink, the neighbours that merely surrounded the
+    destroyed ship no longer touch a live hit and are dropped, so the AI stops
+    chasing dead candidates; the candidates of a still-floating adjacent ship are
+    kept so a known hit is never abandoned. When no un-sunk hits remain the queue
+    empties and the AI falls back to hunt mode.
     """
-    return tuple(pos for pos in queue if pos not in ship.cells)
+    live_hits = frozenset(
+        pos
+        for ship in player_ships
+        if not is_sunk(ship, shots)
+        for pos in ship.cells
+        if pos in shots
+    )
+    return tuple(
+        pos for pos in queue
+        if any(neighbour in live_hits for neighbour in B.neighbours(pos))
+    )
 
 
 def _next_ai_shot(state: GameState, rng: random.Random) -> Tuple[B.Pos, Tuple[B.Pos, ...]]:
@@ -264,7 +283,8 @@ def ai_fire(state: GameState, rng: random.Random) -> GameState:
     Uses the hunt/target strategy: in hunt mode it picks a parity cell at random;
     after a hit it enqueues the hit's orthogonal neighbours (preferring the line
     once two hits align) and works the queue until the ship sinks, at which point
-    the ship's cells are pruned from the queue and the AI returns to hunt mode.
+    candidates that no longer border a live hit are pruned and the AI falls back
+    to hunt mode once no un-sunk hits remain.
     Returns the same state object when it is not the AI's turn or the game is over.
     """
     if state.game_over or state.current_turn != AI:
@@ -280,8 +300,8 @@ def ai_fire(state: GameState, rng: random.Random) -> GameState:
         ship = ship_at(state.player_ships, target)
         assert ship is not None  # guaranteed by the is_hit check
         if is_sunk(ship, new_shots):
-            # Ship destroyed: stop chasing it.
-            new_queue = _prune_sunk(new_queue, ship)
+            # Ship destroyed: drop its dead leftovers, keep any live adjacent hit.
+            new_queue = _prune_sunk(new_queue, state.player_ships, new_shots)
         else:
             hits_on_player = frozenset(
                 pos for pos in new_shots if is_hit(state.player_ships, pos)

@@ -249,6 +249,52 @@ def test_ai_returns_to_hunt_after_sinking() -> None:
         not any(cell in sunk.cells for cell in after.ai_target_queue),
         "the sunk ship's cells are pruned from the target queue",
     )
+    # No other ship has been hit, so every leftover candidate around the dead
+    # ship is dropped and the queue empties (clean queue -> hunt mode).
+    check(
+        after.ai_target_queue == (),
+        "with no other live hit the queue empties so the AI returns to hunt mode",
+    )
+
+
+def test_ai_keeps_adjacent_ship_candidates_after_sinking() -> None:
+    # Two touching ships, both already hit once. Firing the queued cell sinks the
+    # Destroyer; pruning must drop the candidates that only surrounded it while
+    # keeping the ones bordering the still-floating Submarine's live hit, so a
+    # known hit on the adjacent ship is never abandoned.
+    player_ships = (
+        _ship("Destroyer", [(3, 3), (3, 4)]),
+        _ship("Submarine", [(4, 4), (4, 5), (4, 6)]),
+    )
+    ai_ships = (_ship("Destroyer", [(0, 0), (0, 1)]),)
+    state = _state(
+        player_ships, ai_ships,
+        # (3,3) hit the Destroyer, (4,4) hit the Submarine.
+        ai_shots=frozenset({(3, 3), (4, 4)}),
+        # (3,4) sinks the Destroyer; (2,3) only borders it; (5,4) and (4,5)
+        # border the Submarine's live hit at (4,4).
+        queue=((3, 4), (2, 3), (5, 4), (4, 5)),
+        turn=G.AI,
+    )
+    after = G.ai_fire(state, random.Random(0))
+
+    destroyer = G.ship_at(player_ships, (3, 3))
+    check(G.is_sunk(destroyer, after.ai_shots), "firing the queued cell sinks the destroyer")
+    check(
+        (2, 3) not in after.ai_target_queue,
+        "a candidate bordering only the sunk ship is dropped",
+    )
+    check(
+        len(after.ai_target_queue) > 0,
+        "candidates around the still-floating adjacent ship are kept",
+    )
+    check(
+        all(
+            any(neighbour == (4, 4) for neighbour in B.neighbours(pos))
+            for pos in after.ai_target_queue
+        ),
+        "every surviving candidate still borders the adjacent ship's live hit",
+    )
 
 
 def test_ai_deterministic_with_seed() -> None:
@@ -345,6 +391,7 @@ def main() -> None:
         test_ai_returns_unshot_legal_cell,
         test_ai_target_mode_adjacent_after_hit,
         test_ai_returns_to_hunt_after_sinking,
+        test_ai_keeps_adjacent_ship_candidates_after_sinking,
         test_ai_deterministic_with_seed,
         test_immutability,
         test_move_cursor_clamps,

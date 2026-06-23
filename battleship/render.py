@@ -20,10 +20,15 @@ import board as B
 import game as G
 
 # Layout constants (0-based column positions).
+# The composed frame must fit a standard 80-column terminal. With these gaps the
+# total width is BOARD_X + 2*_BOARD_WIDTH + BOARD_GAP + PANEL_GAP + PANEL_WIDTH
+# = 2 + 46 + 4 + 3 + 24 = 79, so the rightmost glyph lands at column 78 and the
+# final column stays free (no last-column auto-wrap). Keep PANEL_WIDTH >= the
+# widest panel line (currently 20) so _pad never has to truncate.
 BOARD_X = 2
 BOARD_Y = 2
-BOARD_GAP = 6          # fixed gap between the two boards
-PANEL_GAP = 4
+BOARD_GAP = 4          # fixed gap between the two boards
+PANEL_GAP = 3          # gap between the boards and the info panel
 PANEL_WIDTH = 24
 
 # Each cell is two characters wide (glyph + trailing space).
