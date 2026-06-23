@@ -1,0 +1,5 @@
+{
+  "name": "Connect Four",
+  "description": "Drop discs and connect four in a row against the AI",
+  "entry": "main.py"
+}
