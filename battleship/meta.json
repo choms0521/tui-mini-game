@@ -1,0 +1,5 @@
+{
+  "name": "Battleship",
+  "description": "Hunt and sink the hidden enemy fleet on a dual 10x10 grid against the AI",
+  "entry": "main.py"
+}
