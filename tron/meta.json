@@ -1,0 +1,5 @@
+{
+  "name": "Tron",
+  "description": "Race light cycles, trap the AI behind your trail",
+  "entry": "main.py"
+}
