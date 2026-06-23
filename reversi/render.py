@@ -117,14 +117,22 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
         "",
     ]
 
-    # Pass notice: if the side that is NOT to move has no legal move, it was
-    # skipped. Derived purely from the board, so it needs no extra state field.
-    if not state.game_over:
-        waiting = G.HUMAN if state.current_player == G.AI else G.AI
-        if not G.legal_moves(state.board, waiting):
-            who = "black" if waiting == G.HUMAN else "white"
-            lines.append(term.dim(f"{who} passes"))
-            lines.append("")
+    # Pass notice: a pass happened only when the last placement returned the
+    # turn to the same player — the opponent had no legal move and was skipped.
+    # A bare "waiting side has no move" check yields false positives: the side
+    # not to move can be momentarily move-less on an ordinary turn (e.g. right
+    # after it just played), without having passed. Gate on the turn actually
+    # coming back to whoever made the last move instead.
+    last = state.last_move
+    turn_returned = (
+        last is not None
+        and state.board[last[0]][last[1]] == state.current_player
+    )
+    if not state.game_over and turn_returned:
+        passer = G.HUMAN if state.current_player == G.AI else G.AI
+        who = "black" if passer == G.HUMAN else "white"
+        lines.append(term.dim(f"{who} passes"))
+        lines.append("")
 
     lines.extend([
         term.dim("화살표    이동"),       # arrows: move

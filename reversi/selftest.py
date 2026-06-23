@@ -246,7 +246,10 @@ def test_render_builds_strings() -> None:
     check(any("REVERSI" in line for line in panel), "panel shows the title")
     check(len(panel) == R.PANEL_HEIGHT, "panel pads to a fixed height without a pass notice")
 
-    # When the side that is not to move has no legal move, the panel surfaces it.
+    # A genuine pass: black played (1,0), white had no reply, so the turn
+    # returned to black. The panel should surface white's pass. The notice is
+    # gated on the turn returning to the mover (board[last_move] == current),
+    # not on a bare "white has no move" check.
     no_white = _b([
         "02211111",
         "11111111",
@@ -257,12 +260,25 @@ def test_render_builds_strings() -> None:
         "11111111",
         "11111220",
     ])
-    pass_state = _state(no_white, G.BLACK)  # black to move; white has no move
+    pass_state = G.GameState(
+        board=no_white, current_player=G.BLACK, game_over=False,
+        winner=None, last_move=(1, 0), cursor=(0, 0),  # (1,0) is a black disc
+    )
     pass_panel = R.panel_lines(term, pass_state)
-    check(any("passes" in line for line in pass_panel), "panel surfaces a pass notice")
+    check(any("passes" in line for line in pass_panel), "panel surfaces a real pass notice")
     # Same fixed height with the notice present, so a shrinking panel leaves no
     # stale control lines behind between frames.
     check(len(pass_panel) == R.PANEL_HEIGHT, "panel keeps the fixed height with a pass notice")
+
+    # No false positive: white is still move-less here, but the last move was
+    # white's (the turn did not return to the mover), so no pass is claimed.
+    no_pass_state = G.GameState(
+        board=no_white, current_player=G.BLACK, game_over=False,
+        winner=None, last_move=(0, 1), cursor=(0, 0),  # (0,1) is a white disc
+    )
+    no_pass_panel = R.panel_lines(term, no_pass_state)
+    check(not any("passes" in line for line in no_pass_panel),
+          "panel claims no pass when the turn did not return to the mover")
 
     over = G.GameState(
         board=state.board, current_player=G.HUMAN, game_over=True,
