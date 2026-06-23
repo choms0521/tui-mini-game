@@ -1,0 +1,5 @@
+{
+  "name": "Sudoku",
+  "description": "Fill the 9x9 grid so every row, column, and box holds 1-9",
+  "entry": "main.py"
+}
