@@ -1,0 +1,5 @@
+{
+  "name": "Blackjack",
+  "description": "Beat the dealer to 21 without going bust",
+  "entry": "main.py"
+}
