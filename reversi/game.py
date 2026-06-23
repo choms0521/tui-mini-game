@@ -260,15 +260,19 @@ def _minimax(
 
     *to_move* is whichever side acts at this node; it may differ from *player*.
     A side with no legal move passes (recurse with the same board for the
-    opponent); if neither side can move the node is terminal and scored by the
-    final disc difference. ``depth`` nudges the AI toward sooner wins.
+    opponent); if neither side can move the node is terminal and scored as a
+    win, loss, or draw (``+_WIN_SCORE``, ``-_WIN_SCORE``, or ``0``) by which
+    side holds more discs, not by the disc margin itself. ``depth`` nudges the
+    AI toward sooner wins.
     """
     opp = _other(to_move)
     my_moves = legal_moves(board, to_move)
 
     if not my_moves:
         if not legal_moves(board, opp):
-            # Neither side can move: terminal node, decide by disc difference.
+            # Neither side can move: terminal node. Decide the winner by disc
+            # count, then score a constant win/loss/draw (not the margin);
+            # depth favors sooner wins.
             winner = _winner_by_count(board)
             if winner == player:
                 return _WIN_SCORE + depth
