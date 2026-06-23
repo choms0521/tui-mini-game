@@ -89,12 +89,35 @@ def _fill(grid: MutableGrid, rng: Optional[random.Random]) -> bool:
     return False
 
 
+def _is_consistent(grid: B.Grid) -> bool:
+    """True when *grid* is free of malformed input.
+
+    Every filled cell must hold a digit in ``1..B.SIZE`` and no filled cell may
+    duplicate another in its row, column, or box; empty cells are ignored. The
+    search only ever writes non-conflicting digits into empty cells, so an
+    inconsistent grid (conflicting givens or an out-of-range digit) can never
+    become valid. ``solve`` and ``count_solutions`` reject such grids up front so
+    their documented "valid solution" / uniqueness contracts stay honest. Note
+    the current callers only pass blank or generated-from-valid grids, so this is
+    contract hardening rather than a fix for a path the game exercises.
+    """
+    for row in grid:
+        for value in row:
+            if value != B.EMPTY and not (1 <= value <= B.SIZE):
+                return False
+    return not B.conflicts(grid)
+
+
 def solve(grid: B.Grid, rng: Optional[random.Random] = None) -> Optional[B.Grid]:
     """Return one complete valid solution for *grid*, or None if unsolvable.
 
-    Passing an *rng* randomizes the search so a blank grid yields a random full
-    board; passing None makes the search deterministic.
+    A grid whose filled cells are already inconsistent (a duplicate in some row,
+    column, or box, or an out-of-range digit) has no valid completion and yields
+    None without searching. Passing an *rng* randomizes the search so a blank
+    grid yields a random full board; passing None makes the search deterministic.
     """
+    if not _is_consistent(grid):
+        return None  # malformed input cannot have a valid solution
     work = _to_mutable(grid)
     if _fill(work, rng):
         return _to_immutable(work)
@@ -129,7 +152,13 @@ def count_solutions(grid: B.Grid, limit: int = 2) -> int:
 
     A return of 1 means the puzzle is proper (exactly one solution); a return of
     2 means "two or more" because the search stops early once the cap is reached.
+    A return of 0 means no valid solution exists — including the case of a
+    malformed grid (conflicting filled cells or an out-of-range digit), which is
+    rejected up front so an already-full but invalid grid is never miscounted
+    as the single solution.
     """
+    if not _is_consistent(grid):
+        return 0  # malformed input has no valid solution
     return _count_solutions(_to_mutable(grid), limit)
 
 

@@ -145,13 +145,33 @@ def test_solver_fills_blank_grid() -> None:
 
 
 def test_solver_unsolvable_returns_none() -> None:
-    # Take the known solution, blank (0,0), and change (0,8) from 2 to 5.
-    # Row 0 now already holds a 5, so the single empty cell (0,0) has no legal
-    # digit and the solver fails immediately (a cheaply unsolvable grid).
-    rows = list(_SOLUTION_ROWS)
-    rows[0] = "0" + rows[0][1:8] + "5"
+    # A *consistent* but unsolvable grid: row 0 holds 1-8 in columns 1-8 (all
+    # distinct, no conflict) and (1,0) is 9. The single relevant empty cell
+    # (0,0) is then boxed in — its row already uses 1-8 and its column/box
+    # already use 9 — so it has zero candidates and the search dead-ends. This
+    # drives the solver's in-search failure path (not the up-front consistency
+    # rejection, which conflicting-input grids are covered by separately).
+    rows = ["012345678", "9" + "." * 8] + ["." * 9] * 7
     grid = _to_grid(rows)
     check(S.solve(grid) is None, "solver returns None for an unsolvable grid")
+
+
+def test_solver_rejects_conflicting_input() -> None:
+    # A full grid with two 5s in row 0 is not a valid Sudoku. The solver must
+    # reject the inconsistent input rather than hand the malformed grid back as
+    # a "complete valid solution".
+    bad_rows = list(_SOLUTION_ROWS)
+    bad_rows[0] = "55" + bad_rows[0][2:]
+    bad = _to_grid(bad_rows)
+    check(S.solve(bad) is None, "solver rejects a grid with conflicting filled cells")
+
+
+def test_solver_rejects_out_of_range_digit() -> None:
+    # An out-of-range digit is malformed even when it duplicates nothing, so the
+    # range check (not the conflict check) is what must reject it.
+    grid = _to_grid(_SOLUTION_ROWS)
+    bad = ((B.SIZE + 1,) + grid[0][1:],) + grid[1:]
+    check(S.solve(bad) is None, "solver rejects an out-of-range digit")
 
 
 # ---------------------------------------------------------------------------
@@ -174,6 +194,19 @@ def test_uniqueness_underconstrained() -> None:
     check(count >= 2, "an under-constrained puzzle reports 2+ solutions")
     check(not S.has_unique_solution(loose),
           "has_unique_solution is False when multiple solutions exist")
+
+
+def test_uniqueness_rejects_invalid_full_grid() -> None:
+    # An already-full but invalid grid (a duplicate 5 in row 0) must not be
+    # reported as having a unique solution: with no empty cells the search would
+    # otherwise count it as exactly one, so the up-front consistency check is
+    # what makes the result correct.
+    bad_rows = list(_SOLUTION_ROWS)
+    bad_rows[0] = "55" + bad_rows[0][2:]
+    bad = _to_grid(bad_rows)
+    check(S.count_solutions(bad) == 0, "an invalid full grid has zero solutions")
+    check(not S.has_unique_solution(bad),
+          "has_unique_solution is False for an invalid full grid")
 
 
 def test_uniqueness_early_exit_caps_count() -> None:
@@ -323,8 +356,11 @@ def main() -> None:
         test_solver_finds_known_solution,
         test_solver_fills_blank_grid,
         test_solver_unsolvable_returns_none,
+        test_solver_rejects_conflicting_input,
+        test_solver_rejects_out_of_range_digit,
         test_uniqueness_proper_puzzle,
         test_uniqueness_underconstrained,
+        test_uniqueness_rejects_invalid_full_grid,
         test_uniqueness_early_exit_caps_count,
         test_generated_puzzle_is_proper,
         test_generation_deterministic,
