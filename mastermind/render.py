@@ -26,7 +26,10 @@ _PEGS_WIDTH = G.CODE_LENGTH * (_PEG_WIDTH + _PEG_SEP) - _PEG_SEP
 
 # A guess row is the peg block, a gap, then the feedback markers.
 _FEEDBACK_GAP = 2
-_ROW_WIDTH = _PEGS_WIDTH + _FEEDBACK_GAP + G.CODE_LENGTH
+# _feedback_markers renders CODE_LENGTH single-cell markers joined by spaces,
+# so its printable width is CODE_LENGTH markers + (CODE_LENGTH - 1) separators.
+_FEEDBACK_WIDTH = 2 * G.CODE_LENGTH - 1
+_ROW_WIDTH = _PEGS_WIDTH + _FEEDBACK_GAP + _FEEDBACK_WIDTH
 
 # Distinct truecolor per color value (index 0 unused; colors are 1..6).
 _COLOR_RGB = {
@@ -113,9 +116,9 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
         f"Guesses left  {guesses_left:>2}",
         "",
         term.dim("1-6    place color"),
-        term.dim("bksp   undo peg"),
+        term.dim("←/bksp undo peg"),
         term.dim("enter  submit guess"),
-        term.dim("r      restart (end)"),
+        term.dim("r      restart"),
         term.dim("q      quit"),
         "",
         term.dim("● exact  ○ partial"),
@@ -124,7 +127,7 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
 
 
 def _overlay(term: Terminal, lines: List[str], board_pixel_width: int) -> str:
-    """Centre each overlay line over the board at the vertical midpoint."""
+    """Centre each overlay line horizontally over the board, in its upper-middle band."""
     y_base = BOARD_Y + len(lines)  # keep the banner near the top-middle band
     parts: List[str] = []
     for i, text in enumerate(lines):
