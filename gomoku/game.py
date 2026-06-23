@@ -100,13 +100,18 @@ def _place(board: Board, row: int, col: int, player: int) -> Board:
     )
 
 
-def _run_length(board: Board, row: int, col: int, dr: int, dc: int) -> int:
-    """Length of the contiguous run of board[row][col]'s colour through (dr, dc).
+def _run_length(
+    board: Board, row: int, col: int, dr: int, dc: int, player: Optional[int] = None
+) -> int:
+    """Length of the contiguous run of *player*'s colour through (row, col).
 
     Counts the stone at (row, col) itself plus equal-coloured stones in both the
-    (dr, dc) and the opposite direction.
+    (dr, dc) and the opposite direction. *player* defaults to the colour already
+    at (row, col); pass it explicitly to measure the run a hypothetical stone
+    would make on an otherwise empty cell, without copying the board.
     """
-    player = board[row][col]
+    if player is None:
+        player = board[row][col]
     count = 1
     r, c = row + dr, col + dc
     while B.in_bounds(r, c) and board[r][c] == player:
@@ -129,6 +134,19 @@ def _wins_at(board: Board, row: int, col: int) -> bool:
         if _run_length(board, row, col, dr, dc) >= B.WIN_LENGTH:
             return True
     return False
+
+
+def _completes_five(board: Board, row: int, col: int, player: int) -> bool:
+    """True if *player* placing on the empty cell (row, col) makes five or more.
+
+    Equivalent to ``_wins_at(_place(board, row, col, player), row, col)`` but
+    scans the four orientations in place, so the AI can test a candidate without
+    allocating a fresh board copy for every empty cell it considers.
+    """
+    return any(
+        _run_length(board, row, col, dr, dc, player) >= B.WIN_LENGTH
+        for dr, dc in B.DIRECTIONS
+    )
 
 
 def check_winner(board: Board) -> Optional[int]:
@@ -317,7 +335,7 @@ def ai_move(state: GameState, rng: random.Random) -> Optional[Pos]:
     # 1. Immediate win for the AI.
     own_wins = [
         pos for pos in candidates
-        if _wins_at(_place(state.board, pos[0], pos[1], player), pos[0], pos[1])
+        if _completes_five(state.board, pos[0], pos[1], player)
     ]
     if own_wins:
         return rng.choice(own_wins)
@@ -326,7 +344,7 @@ def ai_move(state: GameState, rng: random.Random) -> Optional[Pos]:
     #    cell where the opponent would make five).
     opp_wins = [
         pos for pos in candidates
-        if _wins_at(_place(state.board, pos[0], pos[1], opp), pos[0], pos[1])
+        if _completes_five(state.board, pos[0], pos[1], opp)
     ]
     if opp_wins:
         return rng.choice(opp_wins)
