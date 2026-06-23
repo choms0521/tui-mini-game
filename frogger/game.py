@@ -125,11 +125,12 @@ def tick(state: GameState) -> GameState:
     """Advance one game tick.
 
     Order of operations:
-    1. Advance every lane's offset by direction * speed (wrapping).
+    1. Advance every lane's offset by direction * speed (wrapping) and
+       increment the tick counter (a tick always counts, even when the frog
+       dies during this tick).
     2. If frog is on a river lane, carry it by that lane's direction * speed.
     3. If frog carried off-field edge -> lose a life.
     4. Resolve road collisions and river drowning at the frog's current row.
-    5. Increment tick counter.
     """
     if state.game_over or state.won:
         return state

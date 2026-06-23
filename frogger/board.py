@@ -72,7 +72,7 @@ def in_bounds(row: int, col: int) -> bool:
     return 0 <= row < HEIGHT and 0 <= col < WIDTH
 
 
-def obstacle_cells(lane: LaneDef, offset: int) -> frozenset:
+def obstacle_cells(lane: LaneDef, offset: int) -> frozenset[int]:
     """Return the set of columns occupied by obstacles in *lane* at *offset*.
 
     The offset is a cumulative scroll accumulator; the actual obstacle positions

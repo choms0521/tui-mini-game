@@ -23,6 +23,10 @@ PANEL_WIDTH = 22
 # Printable field width: one char per column + two side borders.
 _FIELD_WIDTH = B.WIDTH + 2
 
+# Precomputed goal-slot lookup: column -> slot index. Avoids a linear scan
+# (and exception-based control flow) for every cell in the render loop.
+_GOAL_SLOT_BY_COL = {col: idx for idx, col in enumerate(B.GOAL_COLS)}
+
 # Truecolor palettes.
 _ROAD_BG    = (50,  50,  50)   # dark gray road surface
 _RIVER_BG   = (20,  60, 120)   # dark blue water
@@ -92,15 +96,14 @@ def field_lines(term: Terminal, state: G.GameState) -> List[str]:
                 continue
 
             if row == B.GOAL_ROW:
-                # Check if this column is a goal slot.
-                try:
-                    slot_idx = B.GOAL_COLS.index(col)
-                    if slot_idx in state.filled_goals:
-                        cells.append(slot_f_c(_SLOT_FULL))
-                    else:
-                        cells.append(slot_e_c(_SLOT_EMPTY))
-                except ValueError:
+                # Check if this column is a goal slot (O(1) lookup).
+                slot_idx = _GOAL_SLOT_BY_COL.get(col)
+                if slot_idx is None:
                     cells.append(_lane_bg(term, "safe", is_goal=True)(_SAFE_GLYPH))
+                elif slot_idx in state.filled_goals:
+                    cells.append(slot_f_c(_SLOT_FULL))
+                else:
+                    cells.append(slot_e_c(_SLOT_EMPTY))
                 continue
 
             if col in obs:

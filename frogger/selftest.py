@@ -1,6 +1,7 @@
 """Headless logic checks for the Frogger core (no terminal required).
 
-Run with ``python selftest.py``. Exercises all spec §8 items:
+Run with ``python frogger/selftest.py`` from the repo root. Exercises all
+spec §8 items:
   - frog movement stays within bounds
   - empty goal slot: scores, fills slot, resets frog; all slots filled -> won
   - road car collision: loses a life, resets frog
@@ -213,7 +214,7 @@ def test_river_drowning_costs_life() -> None:
             water_col = c
             break
 
-    assert water_col is not None, "test setup: no water cell found"
+    check(water_col is not None, "test setup: water cell found")
     state = _make_river_state(water_col, 0, river_row)
     s2 = G.tick(state)
     check(s2.lives < state.lives, "drowning in water costs a life")
@@ -236,7 +237,7 @@ def test_log_carries_frog_off_edge_costs_life() -> None:
         if target_col in B.obstacle_cells(lane, off):
             found_offset = off
             break
-    assert found_offset is not None, "test setup: cannot place frog on rightmost log cell"
+    check(found_offset is not None, "test setup: frog placed on rightmost log cell")
 
     state = _make_river_state(target_col, found_offset, river_row)
     # After tick, log carries frog to WIDTH - 1 + speed >= WIDTH -> off edge.
