@@ -212,8 +212,8 @@ def test_ai_prefers_more_open_space() -> None:
 
     On an open board every direction reaches the same connected region, so walls
     are needed to make the flood-fill areas genuinely differ. Here a fully sealed
-    3-cell pocket sits directly below the AI head, while stepping UP opens onto
-    the large rest of the grid.
+    single-cell pocket sits directly below the AI head, while stepping UP opens
+    onto the large rest of the grid.
     """
     head = (3, 5)
     # Seal a single open cell (4,5) directly below the head: walls on its other
@@ -270,7 +270,7 @@ def test_ai_tick_runs_full_game() -> None:
         if state.game_over:
             break
         state = G.ai_tick(state, rng)
-    check(state.game_over, "a seeded AI-vs-stationary game reaches game over")
+    check(state.game_over, "a seeded game (AI vs an un-steered player) reaches game over")
     check(state.winner in (G.PLAYER, G.AI, 0), "winner is one of PLAYER, AI, or draw")
 
 
