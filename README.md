@@ -5,6 +5,9 @@ A small collection of terminal games written in Python with
 environment at the workspace root and follows the same design: an immutable game
 state, flicker-free truecolor rendering, and headless self-tests.
 
+> 한국어 플레이 안내는 [`docs/PLAY-ko.md`](./docs/PLAY-ko.md)를 참고하세요. 게임을
+> 실행하면 화면 옆 조작법 패널도 한국어로 표시됩니다.
+
 ## Games
 
 | Game                              | Folder            | Description                                  |

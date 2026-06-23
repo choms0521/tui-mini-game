@@ -89,10 +89,10 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
         f"You    {term.color_rgb(*_HUMAN_RGB)('●')} red",
         f"AI     {term.color_rgb(*_AI_RGB)('●')} yellow",
         "",
-        term.dim("left/right  aim"),
-        term.dim("enter/space/down drop"),
-        term.dim("r      restart"),
-        term.dim("q      quit"),
+        term.dim("좌우     조준"),
+        term.dim("enter/space/아래 놓기"),
+        term.dim("r       재시작"),
+        term.dim("q       종료"),
     ]
     return lines
 

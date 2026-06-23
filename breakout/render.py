@@ -64,11 +64,11 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
         f"Lives   {state.lives:>3}",
         f"Level   {state.level:>3}",
         "",
-        term.dim("left/right move"),
-        term.dim("space   launch"),
-        term.dim("p       pause"),
-        term.dim("r       restart"),
-        term.dim("q       quit"),
+        term.dim("좌우     이동"),
+        term.dim("space   발사"),
+        term.dim("p       일시정지"),
+        term.dim("r       재시작"),
+        term.dim("q       종료"),
     ]
 
 

@@ -93,11 +93,11 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
         "",
         f"Aliens  {remaining:>3}",
         "",
-        term.dim("left/right  move"),
-        term.dim("space       fire"),
-        term.dim("p           pause"),
-        term.dim("r           restart"),
-        term.dim("q           quit"),
+        term.dim("좌우     이동"),
+        term.dim("space   발사"),
+        term.dim("p       일시정지"),
+        term.dim("r       재시작"),
+        term.dim("q       종료"),
     ]
     return lines
 

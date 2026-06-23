@@ -12,7 +12,7 @@ from typing import List, Optional, Sequence
 from blessed import Terminal
 
 TITLE = "mini-game"
-SUBTITLE = "terminal game launcher"
+SUBTITLE = "터미널 게임 런처"
 
 MENU_X = 4
 MENU_Y = 2
@@ -40,14 +40,14 @@ def menu_lines(term: Terminal, games: Sequence, selected: int) -> List[str]:
         lines.append("")
         lines.append(dim(games[selected].description))
     else:
-        lines.append(dim("no games found next to the launcher"))
+        lines.append(dim("런처 옆에서 게임을 찾지 못했습니다"))
 
     lines.extend(
         [
             "",
-            dim("up/down  select"),
-            dim("enter    play"),
-            dim("q        quit"),
+            dim("위아래   선택"),
+            dim("enter    시작"),
+            dim("q        종료"),
         ]
     )
     return lines
