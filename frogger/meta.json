@@ -1,0 +1,5 @@
+{
+  "name": "Frogger",
+  "description": "Cross the road and river to reach the goal slots -- dodge cars and ride logs!",
+  "entry": "main.py"
+}
