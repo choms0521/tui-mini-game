@@ -91,10 +91,26 @@ def check_game(term: Terminal, root: str, game: str) -> list[str]:
                 failures.append(
                     f"{game}: panel line exceeds PANEL_WIDTH "
                     f"({term.length(line)} > {pw}): {term.strip_seqs(line)!r}")
-        has_summary = any(
-            any(_is_hangul(c) for c in term.strip_seqs(line)) for line in panel)
+        # The how-to summary is the block right under the title: skip the title and
+        # the blank line after it, then take lines up to the next blank line. Check
+        # THAT block for Korean -- not just any Hangul, since the control hints (e.g.
+        # "도움말") also contain Hangul and would otherwise mask a missing summary.
+        stripped = [term.strip_seqs(line) for line in panel]
+        summary: list[str] = []
+        seen_title = started = False
+        for s in stripped:
+            if not started:
+                if s.strip():
+                    seen_title = True
+                elif seen_title:
+                    started = True
+                continue
+            if not s.strip():
+                break
+            summary.append(s)
+        has_summary = any(any(_is_hangul(c) for c in s) for s in summary)
         if not has_summary:
-            failures.append(f"{game}: panel has no Korean how-to text")
+            failures.append(f"{game}: no Korean how-to summary block under the title")
         bx = getattr(R, "BOARD_X", getattr(R, "MAP_X", getattr(R, "MENU_X", 2)))
         gap = getattr(R, "PANEL_GAP", 3)
         bw = _board_width(term, R, state)

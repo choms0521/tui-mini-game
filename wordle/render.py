@@ -24,9 +24,10 @@ _TILE_WIDTH = 3
 _TILE_SEP = 1
 _ROW_WIDTH = G.WORD_LENGTH * (_TILE_WIDTH + _TILE_SEP) - _TILE_SEP  # 19
 
-# Detailed how-to shown as a centered overlay when the player presses ``h``/``?``.
-# Korean for players. The board is only 19 cols wide, so the modal is wider than
-# the board; help_overlay clamps its origin so it still composes on top cleanly.
+# Detailed how-to shown as a centered overlay when the player presses ``?``
+# (Wordle uses ``?`` only, since ``h`` is a valid guess letter). Korean for players.
+# The board is only 19 cols wide, so the modal is wider/taller than the board;
+# help_overlay centers it against the terminal so it stays on screen.
 HELP_LINES = [
     "WORDLE  —  단어 맞히기",
     "",
@@ -123,7 +124,10 @@ def help_overlay(term: Terminal, lines: List[str]) -> str:
     board_height = G.MAX_TRIES * 2  # each tile row is two terminal rows tall
     inner = max(term.length(l) for l in lines)
     x = BOARD_X + max(0, (_ROW_WIDTH - inner - 2) // 2)
-    y = BOARD_Y + max(0, (board_height - len(lines)) // 2)
+    # The overlay is taller than the board, so center it against the full terminal
+    # height when known (falling back to the board area when run headless).
+    screen_height = term.height or (BOARD_Y + board_height)
+    y = max(0, (screen_height - len(lines)) // 2)
     parts: List[str] = []
     for i, line in enumerate(lines):
         pad = inner - term.length(line)

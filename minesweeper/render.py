@@ -129,7 +129,7 @@ def help_overlay(term: Terminal, lines: List[str]) -> str:
     inner = max(term.length(l) for l in lines)
     board_w = 1 + _BOARD_WIDTH + 1
     x = BOARD_X + 1 + max(0, (board_w - inner - 2) // 2)
-    y = BOARD_Y + 1
+    y = max(0, ((term.height or len(lines)) - len(lines)) // 2)
     parts: List[str] = []
     for i, line in enumerate(lines):
         pad = inner - term.length(line)

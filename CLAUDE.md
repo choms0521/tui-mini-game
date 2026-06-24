@@ -40,7 +40,9 @@ input loop MUST provide a Korean how-to:
 
 - Player-facing strings (panel summary, help, banners): **Korean**.
 - All code identifiers, comments, and docstrings: standard technical English.
-- **No Chinese characters (한자) anywhere.** Korean Hangul + ASCII only.
+- **No Chinese characters (한자 / CJK ideographs) anywhere.** Use Korean Hangul and
+  ASCII; common typographic punctuation (such as `—`, `·`, `°`) is fine, but CJK
+  ideographs are not.
 
 ## Layout budget
 

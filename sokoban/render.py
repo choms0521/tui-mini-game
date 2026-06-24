@@ -133,7 +133,7 @@ def help_overlay(term: Terminal, lines: List[str]) -> str:
     inner = max(term.length(l) for l in lines)
     cell_cols = L.MAX_WIDTH * _CELL_W
     x = BOARD_X + 1 + max(0, (cell_cols - inner - 2) // 2)
-    y = BOARD_Y + 1
+    y = max(0, ((term.height or len(lines)) - len(lines)) // 2)
     parts: List[str] = []
     for i, line in enumerate(lines):
         pad = inner - term.length(line)

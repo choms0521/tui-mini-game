@@ -135,7 +135,7 @@ def help_overlay(term: Terminal, lines: List[str]) -> str:
     """Render *lines* as a centered reverse-video block over the playfield."""
     inner = max(term.length(l) for l in lines)
     x = BOARD_X + 1 + max(0, (_ROW_WIDTH - inner - 2) // 2)
-    y = BOARD_Y + 1
+    y = max(0, ((term.height or len(lines)) - len(lines)) // 2)
     parts: List[str] = []
     for i, line in enumerate(lines):
         pad = inner - term.length(line)

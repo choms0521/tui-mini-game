@@ -202,10 +202,9 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
 def help_overlay(term: Terminal, lines: List[str]) -> str:
     """Render *lines* as a centered reverse-video block over the two boards."""
     board_block_width = _BOARD_WIDTH + BOARD_GAP + _BOARD_WIDTH
-    board_height = B.ROWS + 1  # column header row plus one row per board row
     inner = max(term.length(l) for l in lines)
     x = BOARD_X + max(0, (board_block_width - inner - 2) // 2)
-    y = BOARD_Y + max(0, (board_height - len(lines)) // 2)
+    y = max(0, ((term.height or len(lines)) - len(lines)) // 2)
     parts: List[str] = []
     for i, line in enumerate(lines):
         pad = inner - term.length(line)
