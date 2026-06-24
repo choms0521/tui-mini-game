@@ -1,0 +1,5 @@
+{
+  "name": "Gomoku",
+  "description": "Place stones and line up five in a row against the AI",
+  "entry": "main.py"
+}
