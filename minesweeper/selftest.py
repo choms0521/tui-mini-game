@@ -266,6 +266,25 @@ def test_render_draw_composes_without_error() -> None:
     check(True, "draw() composes normal, game-over, won, and flagged frames without error")
 
 
+def test_howto_panel_and_help() -> None:
+    """Panel contains how-to summary, all lines fit PANEL_WIDTH, help overlay composes."""
+    term = Terminal(force_styling=True)
+    rng = random.Random(7)
+    state = G.new_game(rng)
+
+    panel = R.panel_lines(term, state)
+    check(any("MINESWEEPER" in line for line in panel), "panel shows the title")
+    check(any("지뢰" in line for line in panel), "panel shows the Korean how-to summary")
+    check(
+        all(term.length(line) <= R.PANEL_WIDTH for line in panel),
+        "every panel line fits PANEL_WIDTH",
+    )
+
+    with redirect_stdout(io.StringIO()):
+        R.draw(term, state, show_help=True)
+    check(True, "draw(show_help=True) composes the help overlay without error")
+
+
 def main() -> None:
     tests = [
         test_adjacent_count_known_layout,
@@ -279,6 +298,7 @@ def main() -> None:
         test_move_cursor_clamps_to_bounds,
         test_place_mines_count_and_uniqueness,
         test_render_draw_composes_without_error,
+        test_howto_panel_and_help,
     ]
     for test in tests:
         test()

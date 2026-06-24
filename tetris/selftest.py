@@ -149,6 +149,30 @@ def test_render_builds_strings() -> None:
     check(True, "draw() composes normal, paused, and game-over frames without error")
 
 
+def test_howto_panel_and_help() -> None:
+    import io
+    from contextlib import redirect_stdout
+
+    from blessed import Terminal
+    import render as R
+
+    term = Terminal(force_styling=True)
+    rng = random.Random(4)
+    state = G.new_game(rng)
+
+    panel = R.panel_lines(term, state)
+    check(any("TETRIS" in line for line in panel), "panel still shows the title")
+    check(any("블록" in line for line in panel), "panel shows the Korean how-to summary")
+    check(all(term.length(line) <= R.PANEL_WIDTH for line in panel), "every panel line fits PANEL_WIDTH")
+    board_inner = R._CELL_WIDTH - 2
+    check(all(term.length(line) <= board_inner for line in R.HELP_LINES), "every help line fits the playfield width")
+    check(len(R.HELP_LINES) <= B.HEIGHT, "help overlay fits within the playfield height")
+
+    with redirect_stdout(io.StringIO()):
+        R.draw(term, state, show_help=True)
+    check(True, "draw(show_help=True) composes the help overlay without error")
+
+
 def main() -> None:
     tests = [
         test_rotation_round_trip,
@@ -161,6 +185,7 @@ def main() -> None:
         test_lock_completes_and_scores_line,
         test_game_over_detection,
         test_render_builds_strings,
+        test_howto_panel_and_help,
     ]
     for test in tests:
         test()

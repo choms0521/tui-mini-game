@@ -33,6 +33,29 @@ PANEL_WIDTH = 20
 
 _CELL_WIDTH = B.WIDTH * 2 + 2  # two columns per cell plus the two side borders
 
+# Detailed how-to shown as a centered overlay when the player presses ``h``.
+# Korean for players; keep each line width within the playfield width (20).
+HELP_LINES = [
+    "TETRIS  —  테트리스",
+    "",
+    "좌우    이동",
+    "위/x    회전",
+    "z       반대 회전",
+    "아래    천천히 내림",
+    "space   즉시 내림",
+    "p 일시정지  r 재시작",
+    "q 종료",
+    "",
+    "가로 한 줄을 빈칸",
+    "없이 채우면 그 줄이",
+    "지워지고 점수가",
+    "오릅니다. 블록이",
+    "천장까지 쌓이면",
+    "게임 오버.",
+    "",
+    "h 키로 닫습니다",
+]
+
 
 def _fill(term: Terminal, name: str) -> str:
     r, g, b = RGB[name]
@@ -92,6 +115,10 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
     lines = [
         term.bold("TETRIS"),
         "",
+        term.dim("떨어지는 블록을 쌓아"),
+        term.dim("가로 줄을 채워"),
+        term.dim("지우세요."),
+        "",
         "Score",
         term.bold(f"{state.score:>10}"),
         "",
@@ -110,6 +137,7 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
             term.dim("아래    천천히 내림"),
             term.dim("space   즉시 내림"),
             term.dim("p       일시정지"),
+            term.dim("h       도움말"),
             term.dim("r       재시작"),
             term.dim("q       종료"),
         ]
@@ -123,7 +151,19 @@ def _overlay(term: Terminal, text: str) -> str:
     return term.move_xy(x, y) + term.reverse(term.bold(f" {text} "))
 
 
-def draw(term: Terminal, state: G.GameState, paused: bool = False) -> None:
+def help_overlay(term: Terminal, lines: List[str]) -> str:
+    """Render *lines* as a centered reverse-video block over the playfield."""
+    inner = max(term.length(l) for l in lines)
+    x = BOARD_X + max(0, (_CELL_WIDTH - inner - 2) // 2)
+    y = BOARD_Y + max(0, (B.HEIGHT - len(lines)) // 2)
+    parts: List[str] = []
+    for i, line in enumerate(lines):
+        pad = inner - term.length(line)
+        parts.append(term.move_xy(x, y + i) + term.reverse(term.bold(" " + line + " " * pad + " ")))
+    return "".join(parts)
+
+
+def draw(term: Terminal, state: G.GameState, paused: bool = False, show_help: bool = False) -> None:
     frame = [term.home]
 
     for i, line in enumerate(board_lines(term, state)):
@@ -133,7 +173,9 @@ def draw(term: Terminal, state: G.GameState, paused: bool = False) -> None:
     for i, line in enumerate(panel_lines(term, state)):
         frame.append(term.move_xy(panel_x, BOARD_Y + 1 + i) + _pad(term, line, PANEL_WIDTH))
 
-    if state.game_over:
+    if show_help:
+        frame.append(help_overlay(term, HELP_LINES))
+    elif state.game_over:
         frame.append(_overlay(term, "GAME OVER  press r"))
     elif paused:
         frame.append(_overlay(term, "PAUSED"))

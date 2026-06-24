@@ -308,6 +308,33 @@ def test_render_builds_strings() -> None:
 
 
 # ---------------------------------------------------------------------------
+# In-game how-to panel summary and help overlay
+# ---------------------------------------------------------------------------
+
+def test_howto_panel_and_help() -> None:
+    import io
+    from contextlib import redirect_stdout
+
+    from blessed import Terminal
+    import render as R
+
+    term = Terminal(force_styling=True)
+    rng = random.Random(4)
+    state = G.new_game(rng)
+
+    panel = R.panel_lines(term, state)
+    check(any("SNAKE" in line for line in panel), "panel still shows the SNAKE title")
+    check(any("먹이" in line for line in panel), "panel shows the Korean how-to summary")
+    check(all(term.length(line) <= R.PANEL_WIDTH for line in panel), "every panel line fits PANEL_WIDTH")
+    board_inner = R._CELL_WIDTH - 2
+    check(all(term.length(line) <= board_inner for line in R.HELP_LINES), "every help line fits the playfield width")
+
+    with redirect_stdout(io.StringIO()):
+        R.draw(term, state, show_help=True)
+    check(True, "draw(show_help=True) composes the help overlay without error")
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -332,6 +359,7 @@ def main() -> None:
         test_food_spawn_deterministic,
         test_tick_interval_decreases,
         test_render_builds_strings,
+        test_howto_panel_and_help,
     ]
     for test in tests:
         test()

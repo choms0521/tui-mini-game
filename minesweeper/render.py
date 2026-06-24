@@ -92,11 +92,15 @@ def board_lines(term: Terminal, state: G.GameState) -> List[str]:
 
 
 def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
-    """Return the side-panel lines (title, stats, controls)."""
+    """Return the side-panel lines (title, how-to summary, stats, controls)."""
     mines_remaining = len(state.mines) - len(state.flagged)
 
     lines: List[str] = [
         term.bold("MINESWEEPER"),
+        "",
+        term.dim("지뢰를 피해 안전한"),
+        term.dim("칸을 모두 여세요."),
+        term.dim("숫자는 인접 지뢰 수."),
         "",
         f"Mines  {mines_remaining:>4}",
         f"Flags  {len(state.flagged):>4}",
@@ -105,6 +109,7 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
         term.dim("space   열기"),
         term.dim("enter   열기"),
         term.dim("f       깃발"),
+        term.dim("h       도움말"),
         term.dim("r       재시작"),
         term.dim("q       종료"),
     ]
@@ -119,7 +124,41 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
     return lines
 
 
-def draw(term: Terminal, state: G.GameState) -> None:
+def help_overlay(term: Terminal, lines: List[str]) -> str:
+    """Render *lines* as a centered reverse-video block over the playfield."""
+    inner = max(term.length(l) for l in lines)
+    board_w = 1 + _BOARD_WIDTH + 1
+    x = BOARD_X + 1 + max(0, (board_w - inner - 2) // 2)
+    y = BOARD_Y + 1
+    parts: List[str] = []
+    for i, line in enumerate(lines):
+        pad = inner - term.length(line)
+        parts.append(
+            term.move_xy(x, y + i) + term.reverse(term.bold(" " + line + " " * pad + " "))
+        )
+    return "".join(parts)
+
+
+# Detailed how-to shown as a centered overlay when the player presses ``h``.
+# Korean for players.
+HELP_LINES = [
+    "MINESWEEPER",
+    "",
+    "방향키로 커서를 옮기고",
+    "space/enter로 칸을 엽니다.",
+    "숫자는 둘레 8칸의 지뢰 수,",
+    "0이면 주변이 자동으로 열립니다.",
+    "의심 칸은 f로 깃발을 꽂습니다.",
+    "지뢰를 열면 게임 오버,",
+    "지뢰 외 칸 모두 열면 승리.",
+    "",
+    "방향키  이동    f  깃발",
+    "space   열기    r  재시작",
+    "h 키로 도움말을 닫습니다",
+]
+
+
+def draw(term: Terminal, state: G.GameState, show_help: bool = False) -> None:
     """Compose and print the full frame without clearing the screen."""
     board_w = 1 + state.cols * _CELL_W + 1  # left border + cells + right border
 
@@ -135,5 +174,8 @@ def draw(term: Terminal, state: G.GameState) -> None:
         frame.append(
             term.move_xy(panel_x, BOARD_Y + i) + _pad(term, line, PANEL_WIDTH)
         )
+
+    if show_help:
+        frame.append(help_overlay(term, HELP_LINES))
 
     print("".join(frame), end="", flush=True)

@@ -290,6 +290,22 @@ def test_render_builds_strings() -> None:
     check(True, "draw() composes in-play and game-over frames without error")
 
 
+def test_howto_panel_and_help() -> None:
+    from blessed import Terminal
+    import render as R
+
+    term = Terminal(force_styling=True)
+    state = G.new_game()
+
+    panel = R.panel_lines(term, state)
+    check(any("뒤집" in line for line in panel), "panel shows the Korean how-to summary")
+    check(all(term.length(line) <= R.PANEL_WIDTH for line in panel), "every panel line fits PANEL_WIDTH")
+
+    with redirect_stdout(io.StringIO()):
+        R.draw(term, state, show_help=True)
+    check(True, "draw(show_help=True) composes the help overlay without error")
+
+
 # ---------------------------------------------------------------------------
 # Runner
 # ---------------------------------------------------------------------------
@@ -309,6 +325,7 @@ def main() -> None:
         test_ai_deterministic,
         test_ai_takes_corner,
         test_render_builds_strings,
+        test_howto_panel_and_help,
     ]
     for test in tests:
         test()

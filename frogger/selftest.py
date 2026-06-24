@@ -361,6 +361,29 @@ def test_render() -> None:
 
 
 # ---------------------------------------------------------------------------
+# In-game how-to panel summary and help overlay
+# ---------------------------------------------------------------------------
+
+def test_howto_panel_and_help() -> None:
+    from blessed import Terminal
+
+    term = Terminal(force_styling=True)
+    state = G.new_game()
+
+    panel = R.panel_lines(term, state)
+    check(any("FROGGER" in line for line in panel), "panel still includes FROGGER title")
+    check(any("차도" in line for line in panel), "panel shows the Korean how-to summary")
+    check(all(term.length(line) <= R.PANEL_WIDTH for line in panel), "every panel line fits PANEL_WIDTH")
+    board_inner = R._FIELD_WIDTH - 2
+    check(all(term.length(line) <= board_inner for line in R.HELP_LINES), "every help line fits the playfield width")
+    check(len(R.HELP_LINES) <= B.HEIGHT, "help overlay fits within the playfield height")
+
+    with redirect_stdout(io.StringIO()):
+        R.draw(term, state, show_help=True)
+    check(True, "draw(show_help=True) composes the help overlay without error")
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -378,6 +401,7 @@ def main() -> None:
         test_obstacle_positions_deterministic,
         test_immutability,
         test_render,
+        test_howto_panel_and_help,
     ]
     for test in tests:
         test()

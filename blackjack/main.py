@@ -17,11 +17,13 @@ import render as R
 def _map_key(key) -> str | None:
     """Translate a blessed keystroke into a game action name."""
     char = str(key).lower()
+    # ``h`` is HIT in blackjack, so only ``?`` toggles the help overlay.
     return {
         "h": "hit",
         "s": "stand",
         "r": "restart",
         "q": "quit",
+        "?": "help",
     }.get(char)
 
 
@@ -30,6 +32,7 @@ def run() -> None:
     term = Terminal()
     rng = random.Random()
     state = G.new_game(rng)
+    show_help = False
     dirty = True
 
     with term.fullscreen(), term.cbreak(), term.hidden_cursor():
@@ -37,7 +40,7 @@ def run() -> None:
         try:
             while True:
                 if dirty:
-                    R.draw(term, state)
+                    R.draw(term, state, show_help=show_help)
                     dirty = False
 
                 key = term.inkey()
@@ -47,12 +50,17 @@ def run() -> None:
 
                 if action == "quit":
                     break
-                if action == "restart":
-                    state = G.new_game(rng)
+                if action == "help":
+                    show_help = not show_help
                     dirty = True
                     continue
-                if state.game_over:
-                    # Only restart (r) and quit (q) matter once the hand ends.
+                if action == "restart":
+                    state = G.new_game(rng)
+                    show_help = False
+                    dirty = True
+                    continue
+                if show_help or state.game_over:
+                    # While help is open (or once the hand ends) ignore play keys.
                     continue
 
                 if action == "hit":

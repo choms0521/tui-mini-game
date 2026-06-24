@@ -27,6 +27,8 @@ def _map_key(key) -> str | None:
         return "quit"
     if char == "r":
         return "restart"
+    if char in ("h", "?"):
+        return "help"
     if char.isdigit() and 1 <= int(char) <= G.NUM_COLORS:
         return f"color:{char}"
     return None
@@ -37,6 +39,7 @@ def run() -> None:
     term = Terminal()
     rng = random.Random()
     state = G.new_game(rng)
+    show_help = False
     dirty = True
 
     with term.fullscreen(), term.cbreak(), term.hidden_cursor():
@@ -44,7 +47,7 @@ def run() -> None:
         try:
             while True:
                 if dirty:
-                    R.draw(term, state)
+                    R.draw(term, state, show_help=show_help)
                     dirty = False
 
                 key = term.inkey()
@@ -56,13 +59,20 @@ def run() -> None:
                 if action == "quit":
                     break
 
+                if action == "help":
+                    show_help = not show_help
+                    dirty = True
+                    continue
+
                 if action == "restart":
+                    show_help = False
                     state = G.new_game(rng)
                     dirty = True
                     continue
 
-                if state.game_over:
-                    # Only quit and restart are meaningful after the game ends.
+                if show_help or state.game_over:
+                    # Only quit, help, and restart are meaningful while help is shown
+                    # or after the game ends.
                     continue
 
                 if action == "backspace":

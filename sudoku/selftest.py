@@ -363,6 +363,26 @@ def test_render_builds_strings() -> None:
     check(True, "draw() composes normal and won frames without error")
 
 
+def test_howto_panel_and_help() -> None:
+    """Panel contains how-to summary, all lines fit PANEL_WIDTH, help overlay composes."""
+    from blessed import Terminal
+
+    term = Terminal(force_styling=True)
+    state = _known_state()
+
+    panel = R.panel_lines(term, state)
+    check(any("SUDOKU" in line for line in panel), "panel shows the title")
+    check(any("칸" in line for line in panel), "panel shows the Korean how-to summary")
+    check(
+        all(term.length(line) <= R.PANEL_WIDTH for line in panel),
+        "every panel line fits PANEL_WIDTH",
+    )
+
+    with redirect_stdout(io.StringIO()):
+        R.draw(term, state, show_help=True)
+    check(True, "draw(show_help=True) composes the help overlay without error")
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -394,6 +414,7 @@ def main() -> None:
         test_win_detection,
         test_immutability,
         test_render_builds_strings,
+        test_howto_panel_and_help,
     ]
     for test in tests:
         test()

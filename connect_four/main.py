@@ -24,7 +24,7 @@ def _map_key(key) -> str | None:
     if key.name in ("KEY_ENTER", "KEY_DOWN") or str(key) in ("\r", "\n", " "):
         return "drop"
     char = str(key).lower()
-    return {"q": "quit", "r": "restart"}.get(char)
+    return {"q": "quit", "r": "restart", "h": "help", "?": "help"}.get(char)
 
 
 def run() -> None:
@@ -32,6 +32,7 @@ def run() -> None:
     rng = random.Random()
     state = G.new_game()
     selected = B.COLS // 2
+    show_help = False
     dirty = True
 
     with term.fullscreen(), term.cbreak(), term.hidden_cursor():
@@ -39,7 +40,7 @@ def run() -> None:
         try:
             while True:
                 if dirty:
-                    R.draw(term, state, selected)
+                    R.draw(term, state, selected, show_help=show_help)
                     dirty = False
 
                 key = term.inkey()
@@ -49,12 +50,17 @@ def run() -> None:
 
                 if action == "quit":
                     break
+                if action == "help":
+                    show_help = not show_help
+                    dirty = True
+                    continue
                 if action == "restart":
                     state = G.new_game()
                     selected = B.COLS // 2
+                    show_help = False
                     dirty = True
                     continue
-                if state.game_over:
+                if show_help or state.game_over:
                     continue
 
                 if action == "left" and selected > 0:

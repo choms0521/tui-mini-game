@@ -40,6 +40,8 @@ def _map_key(key) -> str | None:
     return {
         "q": "quit",
         "p": "pause",
+        "h": "help",
+        "?": "help",
         " ": "hard_drop",
         "x": "rotate_cw",
         "z": "rotate_ccw",
@@ -84,6 +86,7 @@ def run() -> None:
     rng = random.Random()
     state = G.new_game(rng)
     paused = False
+    show_help = False
     dirty = True
     last_fall = time.monotonic()
 
@@ -92,7 +95,7 @@ def run() -> None:
         try:
             while True:
                 if dirty:
-                    R.draw(term, state, paused=paused)
+                    R.draw(term, state, paused=paused, show_help=show_help)
                     dirty = False
 
                 key = term.inkey(timeout=POLL_TIMEOUT)
@@ -100,16 +103,21 @@ def run() -> None:
                     action = _map_key(key)
                     if action == "quit":
                         break
-                    if action == "pause":
+                    if action == "help":
+                        show_help = not show_help
+                        last_fall = time.monotonic()
+                        dirty = True
+                    elif action == "pause":
                         paused = not paused
                         last_fall = time.monotonic()
                         dirty = True
                     elif action == "restart" and state.game_over:
                         state = G.new_game(rng)
                         paused = False
+                        show_help = False
                         last_fall = time.monotonic()
                         dirty = True
-                    elif action and not paused and not state.game_over:
+                    elif action and not paused and not show_help and not state.game_over:
                         new_state = _apply(state, action, rng)
                         if new_state is not state:
                             state = new_state
@@ -118,7 +126,7 @@ def run() -> None:
                             last_fall = time.monotonic()
 
                 now = time.monotonic()
-                if not paused and not state.game_over:
+                if not paused and not show_help and not state.game_over:
                     if now - last_fall >= fall_interval(state.level):
                         state = G.step_down(state, rng)
                         last_fall = now

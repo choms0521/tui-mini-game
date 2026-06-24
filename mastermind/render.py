@@ -113,17 +113,54 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
     lines = [
         term.bold("MASTERMIND"),
         "",
+        term.dim("숨겨진 색 코드를"),
+        term.dim("제한된 시도 안에"),
+        term.dim("추론해 맞히세요."),
+        "",
         f"Guesses left  {guesses_left:>2}",
         "",
-        term.dim("1-6    place color"),
-        term.dim("←/bksp undo peg"),
-        term.dim("enter  submit guess"),
-        term.dim("r      restart"),
-        term.dim("q      quit"),
+        term.dim("1-6    색 선택"),
+        term.dim("←/bksp 지우기"),
+        term.dim("enter  제출"),
+        term.dim("h      도움말"),
+        term.dim("r      재시작"),
+        term.dim("q      종료"),
         "",
         term.dim("● exact  ○ partial"),
     ]
     return lines
+
+
+def help_overlay(term: Terminal, lines: List[str]) -> str:
+    """Render *lines* as a centered reverse-video block over the playfield."""
+    inner = max(term.length(l) for l in lines)
+    x = BOARD_X + 1 + max(0, (_ROW_WIDTH - inner - 2) // 2)
+    y = BOARD_Y + 1
+    parts: List[str] = []
+    for i, line in enumerate(lines):
+        pad = inner - term.length(line)
+        parts.append(
+            term.move_xy(x, y + i) + term.reverse(term.bold(" " + line + " " * pad + " "))
+        )
+    return "".join(parts)
+
+
+# Detailed how-to shown as a centered overlay when the player presses ``h``.
+# Korean for players.
+HELP_LINES = [
+    "MASTERMIND",
+    "",
+    "숫자 키로 4칸의 색을 고르고",
+    "enter로 제출합니다.",
+    "검은 페그=색·위치 모두 맞음,",
+    "흰 페그=색은 있으나 위치 틀림.",
+    "이 단서로 코드를 좁혀",
+    "제한 횟수 안에 맞히면 승리.",
+    "",
+    "1-6    색 선택",
+    "enter  제출  r  재시작",
+    "h 키로 도움말을 닫습니다",
+]
 
 
 def _overlay(term: Terminal, lines: List[str], board_pixel_width: int) -> str:
@@ -142,7 +179,7 @@ def _secret_reveal(term: Terminal, secret: G.Code) -> str:
     return (" " * _PEG_SEP).join(_peg(term, color) for color in secret)
 
 
-def draw(term: Terminal, state: G.GameState) -> None:
+def draw(term: Terminal, state: G.GameState, show_help: bool = False) -> None:
     """Compose and print the full frame without clearing the screen."""
     frame: List[str] = [term.home]
 
@@ -155,8 +192,10 @@ def draw(term: Terminal, state: G.GameState) -> None:
     for i, line in enumerate(plines):
         frame.append(term.move_xy(panel_x, BOARD_Y + i) + _pad(term, line, PANEL_WIDTH))
 
-    # Win/lose banner with the secret revealed, centred over the board.
-    if state.game_over:
+    if show_help:
+        frame.append(help_overlay(term, HELP_LINES))
+    elif state.game_over:
+        # Win/lose banner with the secret revealed, centred over the board.
         if state.won:
             banner = term.bold(term.green(" YOU CRACKED IT! "))
         else:

@@ -43,6 +43,8 @@ def _map_key(key) -> str | None:
     return {
         "q": "quit",
         "p": "pause",
+        "h": "help",
+        "?": "help",
         " ": "fire",
         "r": "restart",
     }.get(char)
@@ -54,6 +56,7 @@ def run() -> None:
     state = G.new_game(rng)
     total_aliens = len(state.aliens)
     paused = False
+    show_help = False
     dirty = True
 
     now = time.monotonic()
@@ -65,7 +68,7 @@ def run() -> None:
         try:
             while True:
                 if dirty:
-                    R.draw(term, state, paused=paused)
+                    R.draw(term, state, paused=paused, show_help=show_help)
                     dirty = False
 
                 key = term.inkey(timeout=POLL_TIMEOUT)
@@ -73,6 +76,12 @@ def run() -> None:
                     action = _map_key(key)
                     if action == "quit":
                         break
+                    elif action == "help":
+                        show_help = not show_help
+                        now = time.monotonic()
+                        last_bullet = now
+                        last_fleet = now
+                        dirty = True
                     elif action == "pause":
                         paused = not paused
                         now = time.monotonic()
@@ -83,11 +92,12 @@ def run() -> None:
                         state = G.new_game(rng)
                         total_aliens = len(state.aliens)
                         paused = False
+                        show_help = False
                         now = time.monotonic()
                         last_bullet = now
                         last_fleet = now
                         dirty = True
-                    elif action and not paused and not state.game_over and not state.won:
+                    elif action and not paused and not show_help and not state.game_over and not state.won:
                         if action == "left":
                             new_state = G.move_player(state, -1)
                         elif action == "right":
@@ -101,7 +111,7 @@ def run() -> None:
                             dirty = True
 
                 now = time.monotonic()
-                if not paused and not state.game_over and not state.won:
+                if not paused and not show_help and not state.game_over and not state.won:
                     if now - last_bullet >= BULLET_INTERVAL:
                         new_state = G.advance_bullets(state)
                         last_bullet = now

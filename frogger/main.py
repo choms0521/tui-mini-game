@@ -34,6 +34,8 @@ def _map_key(key) -> str | None:
     return {
         "q": "quit",
         "p": "pause",
+        "h": "help",
+        "?": "help",
         "r": "restart",
     }.get(char)
 
@@ -42,6 +44,7 @@ def run() -> None:
     term = Terminal()
     state = G.new_game()
     paused = False
+    show_help = False
     dirty = True
     last_tick = time.monotonic()
 
@@ -50,7 +53,7 @@ def run() -> None:
         try:
             while True:
                 if dirty:
-                    R.draw(term, state, paused=paused)
+                    R.draw(term, state, paused=paused, show_help=show_help)
                     dirty = False
 
                 key = term.inkey(timeout=POLL_TIMEOUT)
@@ -58,6 +61,10 @@ def run() -> None:
                     action = _map_key(key)
                     if action == "quit":
                         break
+                    elif action == "help":
+                        show_help = not show_help
+                        last_tick = time.monotonic()
+                        dirty = True
                     elif action == "pause":
                         paused = not paused
                         last_tick = time.monotonic()
@@ -65,9 +72,10 @@ def run() -> None:
                     elif action == "restart":
                         state = G.new_game()
                         paused = False
+                        show_help = False
                         last_tick = time.monotonic()
                         dirty = True
-                    elif action and not paused and not state.game_over and not state.won:
+                    elif action and not paused and not show_help and not state.game_over and not state.won:
                         if action == "up":
                             new_state = G.move_frog(state, -1, 0)
                         elif action == "down":
@@ -83,7 +91,7 @@ def run() -> None:
                             dirty = True
 
                 now = time.monotonic()
-                if not paused and not state.game_over and not state.won:
+                if not paused and not show_help and not state.game_over and not state.won:
                     if now - last_tick >= TICK_INTERVAL:
                         new_state = G.tick(state)
                         last_tick = now

@@ -305,6 +305,27 @@ def test_render_builds_strings() -> None:
     check(True, "draw() composes normal, solved, and won frames without error")
 
 
+def test_howto_panel_and_help() -> None:
+    """Panel contains how-to summary, all lines fit PANEL_WIDTH, help overlay composes."""
+    from blessed import Terminal
+
+    term = Terminal(force_styling=True)
+    rng = random.Random(0)
+    state = G.new_game(rng)
+
+    panel = R.panel_lines(term, state)
+    check(any("SOKOBAN" in line for line in panel), "panel shows the title")
+    check(any("상자" in line for line in panel), "panel shows the Korean how-to summary")
+    check(
+        all(term.length(line) <= R.PANEL_WIDTH for line in panel),
+        "every panel line fits PANEL_WIDTH",
+    )
+
+    with redirect_stdout(io.StringIO()):
+        R.draw(term, state, show_help=True)
+    check(True, "draw(show_help=True) composes the help overlay without error")
+
+
 def test_parse_all_levels() -> None:
     """All levels in levels.py parse without errors."""
     for i in range(len(L.LEVELS)):
@@ -345,6 +366,7 @@ def main() -> None:
         test_render_builds_strings,
         test_parse_all_levels,
         test_all_levels_solvable,
+        test_howto_panel_and_help,
     ]
     for test in tests:
         test()
