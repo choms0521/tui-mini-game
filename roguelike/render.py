@@ -20,6 +20,24 @@ MAP_Y = 1
 PANEL_GAP = 3
 PANEL_WIDTH = 20
 
+# Detailed how-to shown as a centered overlay when the player presses ``h``/``?``.
+# Korean for players; each line stays within the dungeon map width.
+HELP_LINES = [
+    "ROGUELIKE  —  로그라이크",
+    "",
+    "방향키  이동/공격",
+    "r 재시작   q 종료",
+    "",
+    "방향키로 이동하고 몬스터가 있는",
+    "칸으로 들어가면 공격합니다.",
+    "물약(!)은 체력 회복, 장비(/)는",
+    "능력 강화. 계단(>)에 닿으면 다음",
+    "층으로 내려갑니다. 체력이 0이",
+    "되면 게임 오버. r 재시작.",
+    "",
+    "h 키로 도움말을 닫습니다",
+]
+
 # Truecolor RGB for dungeon tiles and entities.
 _CLR_WALL = (60, 60, 80)
 _CLR_FLOOR = (100, 100, 100)
@@ -104,6 +122,10 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
     lines = [
         term.bold("ROGUELIKE"),
         "",
+        term.dim("던전을 탐험하며"),
+        term.dim("몬스터를 처치하고"),
+        term.dim("깊이 내려가세요."),
+        "",
         "HP",
         _hp_bar(term, p.hp, p.max_hp),
         f"{p.hp:>3} / {p.max_hp}",
@@ -114,6 +136,7 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
         "",
         term.dim("방향키  이동/공격"),
         term.dim("> 에 닿으면 하강"),
+        term.dim("h       도움말"),
         term.dim("r       재시작"),
         term.dim("q       종료"),
         "",
@@ -128,6 +151,20 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
     return lines
 
 
+def help_overlay(term: Terminal, state: G.GameState, lines: List[str]) -> str:
+    """Render *lines* as a centered reverse-video block over the dungeon map."""
+    map_w = len(state.grid[0]) if state.grid else D.WIDTH
+    map_h = len(state.grid) if state.grid else D.HEIGHT
+    inner = max(term.length(l) for l in lines)
+    x = MAP_X + max(0, (map_w - inner - 2) // 2)
+    y = MAP_Y + max(0, (map_h - len(lines)) // 2)
+    parts: List[str] = []
+    for i, line in enumerate(lines):
+        pad = inner - term.length(line)
+        parts.append(term.move_xy(x, y + i) + term.reverse(term.bold(" " + line + " " * pad + " ")))
+    return "".join(parts)
+
+
 def _overlay(term: Terminal, state: G.GameState, text: str) -> str:
     """Centre an overlay message on the map area."""
     map_w = len(state.grid[0]) if state.grid else D.WIDTH
@@ -137,7 +174,7 @@ def _overlay(term: Terminal, state: G.GameState, text: str) -> str:
     return term.move_xy(x, y) + term.reverse(term.bold(f" {text} "))
 
 
-def draw(term: Terminal, state: G.GameState) -> None:
+def draw(term: Terminal, state: G.GameState, show_help: bool = False) -> None:
     """Compose and print a complete flicker-free frame."""
     map_w = len(state.grid[0]) if state.grid else D.WIDTH
     frame: List[str] = [term.home]
@@ -153,7 +190,9 @@ def draw(term: Terminal, state: G.GameState) -> None:
             term.move_xy(panel_x, MAP_Y + i) + _pad(term, line, PANEL_WIDTH)
         )
 
-    if state.game_over:
+    if show_help:
+        frame.append(help_overlay(term, state, HELP_LINES))
+    elif state.game_over:
         frame.append(
             _overlay(term, state, f"DEAD  depth:{state.depth}  score:{state.score}  r=restart q=quit")
         )

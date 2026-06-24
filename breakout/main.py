@@ -30,6 +30,8 @@ def _map_key(key) -> str | None:
     return {
         "q": "quit",
         "p": "pause",
+        "h": "help",
+        "?": "help",
         " ": "launch",
         "r": "restart",
         "a": "left",
@@ -56,6 +58,7 @@ def run() -> None:
 
     state = G.new_game()
     paused = False
+    show_help = False
     dirty = True
     last_tick = time.monotonic()
 
@@ -64,7 +67,7 @@ def run() -> None:
         try:
             while True:
                 if dirty:
-                    R.draw(term, state, paused=paused)
+                    R.draw(term, state, paused=paused, show_help=show_help)
                     dirty = False
 
                 key = term.inkey(timeout=POLL_TIMEOUT)
@@ -72,16 +75,21 @@ def run() -> None:
                     action = _map_key(key)
                     if action == "quit":
                         break
-                    if action == "pause":
+                    if action == "help":
+                        show_help = not show_help
+                        last_tick = time.monotonic()
+                        dirty = True
+                    elif action == "pause":
                         paused = not paused
                         last_tick = time.monotonic()
                         dirty = True
                     elif action == "restart":
                         state = G.new_game()
                         paused = False
+                        show_help = False
                         last_tick = time.monotonic()
                         dirty = True
-                    elif action and not paused and not state.game_over:
+                    elif action and not paused and not show_help and not state.game_over:
                         if action == "left":
                             state = G.move_paddle(state, -C.PADDLE_STEP)
                         elif action == "right":
@@ -91,7 +99,7 @@ def run() -> None:
                         dirty = True
 
                 now = time.monotonic()
-                if not paused and not state.game_over and state.launched:
+                if not paused and not show_help and not state.game_over and state.launched:
                     if now - last_tick >= tick_interval(state.level):
                         state = G.tick(state)
                         last_tick = now

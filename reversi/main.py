@@ -30,7 +30,7 @@ def _map_key(key) -> str | None:
     if key.name == "KEY_ENTER" or str(key) in ("\r", "\n", " "):
         return "place"
     char = str(key).lower()
-    return {"q": "quit", "r": "restart"}.get(char)
+    return {"q": "quit", "r": "restart", "h": "help", "?": "help"}.get(char)
 
 
 def _move_cursor(state: G.GameState, drow: int, dcol: int) -> G.GameState:
@@ -56,6 +56,7 @@ def run() -> None:
     term = Terminal()
     rng = random.Random()
     state = G.new_game()
+    show_help = False
     dirty = True
 
     with term.fullscreen(), term.cbreak(), term.hidden_cursor():
@@ -63,7 +64,7 @@ def run() -> None:
         try:
             while True:
                 if dirty:
-                    R.draw(term, state)
+                    R.draw(term, state, show_help=show_help)
                     dirty = False
 
                 key = term.inkey()
@@ -73,11 +74,16 @@ def run() -> None:
 
                 if action == "quit":
                     break
-                if action == "restart":
-                    state = G.new_game()
+                if action == "help":
+                    show_help = not show_help
                     dirty = True
                     continue
-                if state.game_over:
+                if action == "restart":
+                    state = G.new_game()
+                    show_help = False
+                    dirty = True
+                    continue
+                if show_help or state.game_over:
                     continue
 
                 if action == "left":

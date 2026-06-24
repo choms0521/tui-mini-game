@@ -348,6 +348,22 @@ def test_render_builds_strings() -> None:
     check(True, "draw() composes player-turn and result frames without error")
 
 
+def test_howto_panel_and_help() -> None:
+    from blessed import Terminal
+    import render as R
+
+    term = Terminal(force_styling=True)
+    state = G.new_game(random.Random(4))
+
+    panel = R.panel_lines(term, state)
+    check(any("딜러" in line for line in panel), "panel shows the Korean how-to summary")
+    check(all(term.length(line) <= R.PANEL_WIDTH for line in panel), "every panel line fits PANEL_WIDTH")
+
+    with redirect_stdout(io.StringIO()):
+        R.draw(term, state, show_help=True)
+    check(True, "draw(show_help=True) composes the help overlay without error")
+
+
 def test_render_panel_position_is_fixed() -> None:
     # The card area must use a fixed width so the panel does not drift as the
     # hand grows; otherwise hits would leave stale panel fragments behind.
@@ -402,6 +418,7 @@ def main() -> None:
         test_stand_immutability,
         test_no_action_after_game_over,
         test_render_builds_strings,
+        test_howto_panel_and_help,
         test_render_panel_position_is_fixed,
     ]
     for test in tests:

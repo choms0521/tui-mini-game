@@ -6,7 +6,8 @@ environment at the workspace root and follows the same design: an immutable game
 state, flicker-free truecolor rendering, and headless self-tests.
 
 > 한국어 플레이 안내는 [`docs/PLAY-ko.md`](./docs/PLAY-ko.md)를 참고하세요. 게임을
-> 실행하면 화면 옆 조작법 패널도 한국어로 표시됩니다.
+> 실행하면 화면 옆 패널에 게임 설명과 조작법이 한국어로 표시되고, `h`(또는 `?`) 키를
+> 누르면 자세한 도움말이 화면 중앙에 나타납니다.
 
 ## Games
 
@@ -22,6 +23,15 @@ state, flicker-free truecolor rendering, and headless self-tests.
 | [Wordle](./wordle)                | `wordle/`         | Guess the hidden 5-letter word in six tries  |
 | [Sokoban](./sokoban)              | `sokoban/`        | Push every box onto a goal                   |
 | [Pong](./pong)                    | `pong/`           | Paddle duel against a simple AI              |
+| [Connect Four](./connect_four)    | `connect_four/`   | Drop discs and connect four against the AI   |
+| [Mastermind](./mastermind)        | `mastermind/`     | Crack the hidden color code from hint pegs   |
+| [Sudoku](./sudoku)                | `sudoku/`         | Fill the 9x9 grid with 1-9, no repeats       |
+| [Reversi](./reversi)              | `reversi/`        | Outflank and flip discs against the AI       |
+| [Gomoku](./gomoku)                | `gomoku/`         | Line up five in a row against the AI         |
+| [Battleship](./battleship)        | `battleship/`     | Hunt and sink the hidden enemy fleet (AI)    |
+| [Blackjack](./blackjack)          | `blackjack/`      | Beat the dealer to 21 without going bust     |
+| [Tron](./tron)                    | `tron/`           | Trap the AI behind your light-cycle trail    |
+| [Frogger](./frogger)              | `frogger/`        | Cross the road and river to the goal slots   |
 
 ## Setup
 
@@ -73,6 +83,8 @@ with no runnable entry is skipped.
 
 - Python 3.10+
 - A terminal with truecolor support (macOS Terminal, iTerm2, most modern terminals)
+- A terminal at least **80×30**; a few wide games need more (Tron ~112 columns, Pong ~85).
+  Each game prints a size hint if the window is too small.
 
 ## Layout
 
@@ -82,6 +94,7 @@ mini-game/
 ├── requirements.txt  # shared dependencies (blessed)
 ├── play.sh           # launcher menu (runs each game as a child process)
 ├── launcher/         # menu: discovery + render + selftest
+├── docs/             # PLAY-ko.md (Korean guide), game candidates, plans
 ├── tetris/           # each game folder: main.py + meta.json + selftest.py
 ├── breakout/
 ├── snake/
@@ -91,5 +104,14 @@ mini-game/
 ├── roguelike/
 ├── wordle/
 ├── sokoban/
-└── pong/
+├── pong/
+├── connect_four/
+├── mastermind/
+├── sudoku/
+├── reversi/
+├── gomoku/
+├── battleship/
+├── blackjack/
+├── tron/
+└── frogger/
 ```

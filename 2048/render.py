@@ -80,14 +80,19 @@ def board_lines(term: Terminal, state: G.GameState) -> List[str]:
 
 
 def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
-    """Build the side-panel lines: title, score, and controls."""
+    """Build the side-panel lines: title, how-to summary, score, and controls."""
     lines = [
         term.bold("GAME 2048"),
+        "",
+        term.dim("같은 숫자 타일을"),
+        term.dim("밀어 합쳐 2048로."),
+        term.dim("막히면 게임 끝."),
         "",
         "Score",
         term.bold(f"{state.score:>10}"),
         "",
         term.dim("방향키  이동"),
+        term.dim("h       도움말"),
         term.dim("r       재시작"),
         term.dim("q       종료"),
     ]
@@ -102,7 +107,41 @@ def _overlay(term: Terminal, text: str) -> str:
     return term.move_xy(x, y) + term.reverse(term.bold(f" {text} "))
 
 
-def draw(term: Terminal, state: G.GameState) -> None:
+def help_overlay(term: Terminal, lines: List[str]) -> str:
+    """Render *lines* as a centered reverse-video block over the playfield."""
+    inner = max(term.length(l) for l in lines)
+    x = BOARD_X + 1 + max(0, (_BOARD_W - inner - 2) // 2)
+    y = max(0, ((term.height or len(lines)) - len(lines)) // 2)
+    parts: List[str] = []
+    for i, line in enumerate(lines):
+        pad = inner - term.length(line)
+        parts.append(
+            term.move_xy(x, y + i) + term.reverse(term.bold(" " + line + " " * pad + " "))
+        )
+    return "".join(parts)
+
+
+# Detailed how-to shown as a centered overlay when the player presses ``h``.
+# Korean for players.
+HELP_LINES = [
+    "GAME 2048",
+    "",
+    "방향키로 보드를 기울이면",
+    "모든 타일이 그 방향으로",
+    "미끄러지고, 같은 숫자는",
+    "하나로 합쳐져 2배가 됩니다.",
+    "움직일 때마다 빈 칸에",
+    "2 또는 4가 새로 생깁니다.",
+    "2048 타일을 만들면 승리,",
+    "더 움직일 수 없으면 오버.",
+    "",
+    "방향키  이동",
+    "r       새 게임",
+    "h 키로 도움말을 닫습니다",
+]
+
+
+def draw(term: Terminal, state: G.GameState, show_help: bool = False) -> None:
     """Compose and print a complete frame without clearing the screen."""
     frame = [term.home]
 
@@ -116,7 +155,9 @@ def draw(term: Terminal, state: G.GameState) -> None:
             term.move_xy(panel_x, BOARD_Y + 1 + i) + _pad(term, line, PANEL_WIDTH)
         )
 
-    if state.game_over:
+    if show_help:
+        frame.append(help_overlay(term, HELP_LINES))
+    elif state.game_over:
         frame.append(_overlay(term, "GAME OVER  press r"))
     elif state.won:
         frame.append(_overlay(term, "YOU WIN!   press r or keep going"))

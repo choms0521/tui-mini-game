@@ -84,20 +84,25 @@ def board_lines(term: Terminal, state: G.GameState) -> List[str]:
 
 
 def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
-    """Return the side-panel lines (title, stats, controls)."""
+    """Return the side-panel lines (title, how-to summary, stats, controls)."""
     filled = sum(1 for row in state.grid for v in row if v != B.EMPTY)
     remaining = B.SIZE * B.SIZE - filled
 
     lines: List[str] = [
         term.bold("SUDOKU"),
         "",
+        term.dim("9x9 칸에 1~9를"),
+        term.dim("채우되 행·열·박스에"),
+        term.dim("겹치지 않게 하세요."),
+        "",
         f"Empty  {remaining:>4}",
         "",
-        term.dim("arrows  move"),
-        term.dim("1-9     set digit"),
-        term.dim("0/bksp  clear"),
-        term.dim("r       new puzzle"),
-        term.dim("q       quit"),
+        term.dim("arrows  이동"),
+        term.dim("1-9     입력"),
+        term.dim("0/bksp  지우기"),
+        term.dim("h       도움말"),
+        term.dim("r       새 퍼즐"),
+        term.dim("q       종료"),
     ]
 
     if state.won:
@@ -107,7 +112,42 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
     return lines
 
 
-def draw(term: Terminal, state: G.GameState) -> None:
+def help_overlay(term: Terminal, lines: List[str]) -> str:
+    """Render *lines* as a centered reverse-video block over the playfield."""
+    inner = max(term.length(l) for l in lines)
+    # board_w is computed dynamically; use the known rule width as approximation
+    board_w = B.BOX * (B.BOX * _CELL_W + 1) + 1
+    x = BOARD_X + 1 + max(0, (board_w - inner - 2) // 2)
+    y = max(0, ((term.height or len(lines)) - len(lines)) // 2)
+    parts: List[str] = []
+    for i, line in enumerate(lines):
+        pad = inner - term.length(line)
+        parts.append(
+            term.move_xy(x, y + i) + term.reverse(term.bold(" " + line + " " * pad + " "))
+        )
+    return "".join(parts)
+
+
+# Detailed how-to shown as a centered overlay when the player presses ``h``.
+# Korean for players.
+HELP_LINES = [
+    "SUDOKU",
+    "",
+    "방향키로 칸을 옮기고",
+    "1~9로 숫자를 채웁니다.",
+    "처음 주어진 칸은 고칠 수 없습니다.",
+    "같은 행·열·3x3 박스에",
+    "숫자가 겹치면 충돌로 표시됩니다.",
+    "0이나 backspace로 지우고,",
+    "규칙대로 모두 채우면 완성.",
+    "",
+    "arrows  이동   1-9  입력",
+    "0/bksp  지우기   r  새 퍼즐",
+    "h 키로 도움말을 닫습니다",
+]
+
+
+def draw(term: Terminal, state: G.GameState, show_help: bool = False) -> None:
     """Compose and print the full frame without clearing the screen."""
     board = board_lines(term, state)
     board_w = term.length(board[0]) if board else 0
@@ -124,5 +164,8 @@ def draw(term: Terminal, state: G.GameState) -> None:
         frame.append(
             term.move_xy(panel_x, BOARD_Y + i) + _pad(term, line, PANEL_WIDTH)
         )
+
+    if show_help:
+        frame.append(help_overlay(term, HELP_LINES))
 
     print("".join(frame), end="", flush=True)

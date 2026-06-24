@@ -85,16 +85,55 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
     lines = [
         term.bold("CONNECT FOUR"),
         "",
+        term.dim("원반을 떨어뜨려"),
+        term.dim("가로·세로·대각선"),
+        term.dim("4개를 먼저"),
+        term.dim("이으세요(AI 상대)."),
+        "",
         f"Turn   {turn}",
         f"You    {term.color_rgb(*_HUMAN_RGB)('●')} red",
         f"AI     {term.color_rgb(*_AI_RGB)('●')} yellow",
         "",
         term.dim("좌우     조준"),
         term.dim("enter/space/아래 놓기"),
+        term.dim("h       도움말"),
         term.dim("r       재시작"),
         term.dim("q       종료"),
     ]
     return lines
+
+
+def help_overlay(term: Terminal, lines: List[str]) -> str:
+    """Render *lines* as a centered reverse-video block over the playfield."""
+    inner = max(term.length(l) for l in lines)
+    x = BOARD_X + 1 + max(0, (_ROW_WIDTH - inner - 2) // 2)
+    y = max(0, ((term.height or len(lines)) - len(lines)) // 2)
+    parts: List[str] = []
+    for i, line in enumerate(lines):
+        pad = inner - term.length(line)
+        parts.append(
+            term.move_xy(x, y + i) + term.reverse(term.bold(" " + line + " " * pad + " "))
+        )
+    return "".join(parts)
+
+
+# Detailed how-to shown as a centered overlay when the player presses ``h``.
+# Korean for players.
+HELP_LINES = [
+    "CONNECT FOUR",
+    "",
+    "좌우 방향키로 열을 고르고",
+    "enter/space/아래로 원반을 놓습니다.",
+    "원반은 그 열의 가장 아래",
+    "빈 칸에 쌓입니다.",
+    "같은 색 4개를 먼저 이으면 승리,",
+    "보드가 가득 차면 무승부.",
+    "",
+    "좌우     조준",
+    "enter    놓기",
+    "r        재시작",
+    "h 키로 도움말을 닫습니다",
+]
 
 
 def _overlay(term: Terminal, lines: List[str], width: int) -> str:
@@ -108,7 +147,7 @@ def _overlay(term: Terminal, lines: List[str], width: int) -> str:
     return "".join(parts)
 
 
-def draw(term: Terminal, state: G.GameState, selected_col: int = 0) -> None:
+def draw(term: Terminal, state: G.GameState, selected_col: int = 0, show_help: bool = False) -> None:
     """Compose and print the full frame without clearing the screen."""
     frame: List[str] = [term.home]
 
@@ -127,7 +166,9 @@ def draw(term: Terminal, state: G.GameState, selected_col: int = 0) -> None:
     for i, line in enumerate(panel_lines(term, state)):
         frame.append(term.move_xy(panel_x, BOARD_Y + i) + _pad(term, line, PANEL_WIDTH))
 
-    if state.game_over:
+    if show_help:
+        frame.append(help_overlay(term, HELP_LINES))
+    elif state.game_over:
         if state.winner == G.HUMAN:
             banner = term.bold(term.green(" YOU WIN! "))
         elif state.winner == G.AI:

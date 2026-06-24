@@ -30,6 +30,22 @@ PANEL_WIDTH = 22
 # Two columns per cell plus the two side border characters.
 _CELL_WIDTH = B.WIDTH * 2 + 2
 
+# Detailed how-to shown as a centered overlay when the player presses ``h``.
+# Korean for players; keep each line width within the playfield width.
+HELP_LINES = [
+    "TRON  —  라이트사이클",
+    "",
+    "화살표  방향 전환 (180도 역주행 불가)",
+    "p 일시정지   r 재시작   q 종료",
+    "",
+    "방향키로 방향을 바꾸며 매 순간 자동 전진합니다.",
+    "지나온 자리에는 벽이 남고, 벽이나 경계, 상대와",
+    "부딪히면 사망합니다. 상대를 좁은 곳에 몰아",
+    "먼저 충돌하게 만드세요.",
+    "",
+    "h 키로 도움말을 닫습니다",
+]
+
 
 def _pad(term: Terminal, text: str, width: int) -> str:
     """Right-pad to a fixed printable width, ignoring color escape codes."""
@@ -79,6 +95,10 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
     lines = [
         term.bold("TRON"),
         "",
+        term.dim("자취(벽)를 남기며"),
+        term.dim("달려 상대를 먼저"),
+        term.dim("충돌시키세요."),
+        "",
         f"Tick   {state.tick:>5}",
         f"Status {status}",
         "",
@@ -87,6 +107,7 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
         "",
         term.dim("화살표  방향"),
         term.dim("p       일시정지"),
+        term.dim("h       도움말"),
         term.dim("r       재시작"),
         term.dim("q       종료"),
     ]
@@ -104,7 +125,19 @@ def _overlay(term: Terminal, lines: List[str], width: int) -> str:
     return "".join(parts)
 
 
-def draw(term: Terminal, state: G.GameState, paused: bool = False) -> None:
+def help_overlay(term: Terminal, lines: List[str]) -> str:
+    """Render *lines* as a centered reverse-video block over the playfield."""
+    inner = max(term.length(l) for l in lines)
+    x = BOARD_X + max(0, (_CELL_WIDTH - inner - 2) // 2)
+    y = BOARD_Y + 1 + max(0, (B.HEIGHT - len(lines)) // 2)
+    parts: List[str] = []
+    for i, line in enumerate(lines):
+        pad = inner - term.length(line)
+        parts.append(term.move_xy(x, y + i) + term.reverse(term.bold(" " + line + " " * pad + " ")))
+    return "".join(parts)
+
+
+def draw(term: Terminal, state: G.GameState, paused: bool = False, show_help: bool = False) -> None:
     """Compose and print a full frame to the terminal without flickering."""
     frame: List[str] = [term.home]
 
@@ -115,7 +148,9 @@ def draw(term: Terminal, state: G.GameState, paused: bool = False) -> None:
     for i, line in enumerate(panel_lines(term, state)):
         frame.append(term.move_xy(panel_x, BOARD_Y + 1 + i) + _pad(term, line, PANEL_WIDTH))
 
-    if state.game_over:
+    if show_help:
+        frame.append(help_overlay(term, HELP_LINES))
+    elif state.game_over:
         if state.winner == G.PLAYER:
             banner = term.bold(term.color_rgb(*PLAYER_HEAD_RGB)(" YOU WIN! "))
         elif state.winner == G.AI:

@@ -101,13 +101,17 @@ def board_lines(term: Terminal, state: G.SokobanState) -> List[str]:
 
 
 def panel_lines(term: Terminal, state: G.SokobanState) -> List[str]:
-    """Return the sidebar strings: title, stats, and key hints."""
+    """Return the sidebar strings: title, how-to summary, stats, and key hints."""
     boxes_remaining = len(state.boxes - state.goals)
     total_goals     = len(state.goals)
     on_goal         = total_goals - boxes_remaining
 
     lines: List[str] = [
         term.bold("SOKOBAN"),
+        "",
+        term.dim("모든 상자를 목표"),
+        term.dim("지점으로 밀어"),
+        term.dim("넣으세요."),
         "",
         f"Level   {state.level_index + 1:>3} / {len(L.LEVELS)}",
         f"Moves   {state.moves:>5}",
@@ -117,10 +121,46 @@ def panel_lines(term: Terminal, state: G.SokobanState) -> List[str]:
         "",
         term.dim("방향키  이동/밀기"),
         term.dim("u       되돌리기"),
+        term.dim("h       도움말"),
         term.dim("r       재시작"),
         term.dim("q       종료"),
     ]
     return lines
+
+
+def help_overlay(term: Terminal, lines: List[str]) -> str:
+    """Render *lines* as a centered reverse-video block over the playfield."""
+    inner = max(term.length(l) for l in lines)
+    cell_cols = L.MAX_WIDTH * _CELL_W
+    x = BOARD_X + 1 + max(0, (cell_cols - inner - 2) // 2)
+    y = max(0, ((term.height or len(lines)) - len(lines)) // 2)
+    parts: List[str] = []
+    for i, line in enumerate(lines):
+        pad = inner - term.length(line)
+        parts.append(
+            term.move_xy(x, y + i) + term.reverse(term.bold(" " + line + " " * pad + " "))
+        )
+    return "".join(parts)
+
+
+# Detailed how-to shown as a centered overlay when the player presses ``h``.
+# Korean for players.
+HELP_LINES = [
+    "SOKOBAN",
+    "",
+    "방향키로 일꾼을 움직여",
+    "상자를 밉니다.",
+    "상자는 밀 수만 있고",
+    "당길 수 없으며, 벽이나",
+    "다른 상자가 막으면 안 됩니다.",
+    "잘못 밀었으면 u로 되돌립니다.",
+    "모든 상자가 목표 위에 오면",
+    "클리어. r 재시작.",
+    "",
+    "방향키  이동/밀기",
+    "u       되돌리기",
+    "h 키로 도움말을 닫습니다",
+]
 
 
 def _win_overlay(term: Terminal) -> str:
@@ -142,7 +182,7 @@ def _solved_overlay(term: Terminal, state: G.SokobanState) -> str:
     return term.move_xy(x, y) + term.reverse(term.bold(text))
 
 
-def draw(term: Terminal, state: G.SokobanState) -> None:
+def draw(term: Terminal, state: G.SokobanState, show_help: bool = False) -> None:
     """Compose and print a full frame without clearing the screen."""
     frame: List[str] = [term.home]
 
@@ -159,7 +199,9 @@ def draw(term: Terminal, state: G.SokobanState) -> None:
             term.move_xy(panel_x, BOARD_Y + i) + _pad(term, line, PANEL_WIDTH)
         )
 
-    if state.won:
+    if show_help:
+        frame.append(help_overlay(term, HELP_LINES))
+    elif state.won:
         frame.append(_win_overlay(term))
     elif state.solved:
         frame.append(_solved_overlay(term, state))

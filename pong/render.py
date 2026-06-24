@@ -23,6 +23,22 @@ _BALL = "O"
 _PADDLE = "|"
 _CENTER_LINE = ":"
 
+# Detailed how-to shown as a centered overlay when the player presses ``h``.
+# Korean for players; keep each line width within the court width.
+HELP_LINES = [
+    "PONG  —  AI와 패들 대결",
+    "",
+    "위/아래 방향키 또는 w/s   패들 이동",
+    "space                    서브/일시정지",
+    "r 재시작   q 종료",
+    "",
+    "위/아래 방향키(또는 w/s)로 패들을 움직여",
+    "공을 막고 받아칩니다. 상대가 못 받으면",
+    "점수를 얻고, 먼저 목표 점수에 도달하면 승리.",
+    "",
+    "h 키로 도움말을 닫습니다",
+]
+
 
 def _pad(term: Terminal, text: str, width: int) -> str:
     """Pad *text* to *width* printable columns (ignores escape sequences)."""
@@ -83,11 +99,17 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
     return [
         term.bold("PONG"),
         "",
+        term.dim("AI와 패들 대결."),
+        term.dim("공을 받아쳐"),
+        term.dim("상대 골문에"),
+        term.dim("먼저 넣으세요."),
+        "",
         term.color_rgb(80, 200, 255)("Player") + "  vs  " + term.color_rgb(255, 160, 80)("CPU"),
         "",
         term.dim("위/w    패들 위로"),
         term.dim("아래/s  패들 아래"),
         term.dim("space   시작/정지"),
+        term.dim("h       도움말"),
         term.dim("r       재시작"),
         term.dim("q       종료"),
     ]
@@ -101,7 +123,20 @@ def _overlay(term: Terminal, text: str) -> str:
     return term.move_xy(x, y) + term.reverse(term.bold(f" {text} "))
 
 
-def draw(term: Terminal, state: G.GameState) -> None:
+def help_overlay(term: Terminal, lines: List[str]) -> str:
+    """Render *lines* as a centered reverse-video block over the court."""
+    inner = max(term.length(l) for l in lines)
+    # +1 for the top border, +1 for the score line.
+    x = BOARD_X + 1 + max(0, (C.PLAY_W - inner - 2) // 2)
+    y = BOARD_Y + 1 + 1 + max(0, (C.PLAY_H - len(lines)) // 2)
+    parts: List[str] = []
+    for i, line in enumerate(lines):
+        pad = inner - term.length(line)
+        parts.append(term.move_xy(x, y + i) + term.reverse(term.bold(" " + line + " " * pad + " ")))
+    return "".join(parts)
+
+
+def draw(term: Terminal, state: G.GameState, show_help: bool = False) -> None:
     """Compose and flush a complete frame without clearing the screen."""
     frame = [term.home]
 
@@ -119,7 +154,9 @@ def draw(term: Terminal, state: G.GameState) -> None:
             + _pad(term, line, PANEL_WIDTH)
         )
 
-    if state.game_over:
+    if show_help:
+        frame.append(help_overlay(term, HELP_LINES))
+    elif state.game_over:
         frame.append(_overlay(term, f"{state.winner} wins!  press r"))
     elif state.paused:
         frame.append(_overlay(term, "PAUSED"))

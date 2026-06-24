@@ -226,6 +226,29 @@ def test_render_builds_strings() -> None:
     check(True, "draw() composes serve-hint, paused, and win frames without error")
 
 
+def test_howto_panel_and_help() -> None:
+    import io
+    from contextlib import redirect_stdout
+
+    from blessed import Terminal
+    import render as R
+
+    term = Terminal(force_styling=True)
+    rng = random.Random(0)
+    s = G.new_game(rng)
+
+    panel = R.panel_lines(term, s)
+    check(any("PONG" in line for line in panel), "panel still includes the title")
+    check(any("받아쳐" in line for line in panel), "panel shows the Korean how-to summary")
+    check(all(term.length(line) <= R.PANEL_WIDTH for line in panel), "every panel line fits PANEL_WIDTH")
+    board_inner = C.PLAY_W
+    check(all(term.length(line) <= board_inner for line in R.HELP_LINES), "every help line fits the court width")
+
+    with redirect_stdout(io.StringIO()):
+        R.draw(term, s, show_help=True)
+    check(True, "draw(show_help=True) composes the help overlay without error")
+
+
 def main() -> None:
     tests = [
         test_top_wall_bounce,
@@ -242,6 +265,7 @@ def main() -> None:
         test_win_detection_player,
         test_immutability,
         test_render_builds_strings,
+        test_howto_panel_and_help,
     ]
     for test in tests:
         test()

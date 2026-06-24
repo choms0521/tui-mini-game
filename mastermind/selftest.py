@@ -314,6 +314,27 @@ def test_render_builds_strings() -> None:
     check(True, "draw() composes normal, won, and lost frames without error")
 
 
+def test_howto_panel_and_help() -> None:
+    """Panel contains how-to summary, all lines fit PANEL_WIDTH, help overlay composes."""
+    from blessed import Terminal
+    import render as R
+
+    term = Terminal(force_styling=True)
+    state = G.new_game(random.Random(1))
+
+    panel = R.panel_lines(term, state)
+    check(any("MASTERMIND" in line for line in panel), "panel shows the title")
+    check(any("추론" in line for line in panel), "panel shows the Korean how-to summary")
+    check(
+        all(term.length(line) <= R.PANEL_WIDTH for line in panel),
+        "every panel line fits PANEL_WIDTH",
+    )
+
+    with redirect_stdout(io.StringIO()):
+        R.draw(term, state, show_help=True)
+    check(True, "draw(show_help=True) composes the help overlay without error")
+
+
 # ---------------------------------------------------------------------------
 # Runner
 # ---------------------------------------------------------------------------
@@ -345,6 +366,7 @@ def main() -> None:
         test_no_action_after_game_over,
         test_submit_immutability,
         test_render_builds_strings,
+        test_howto_panel_and_help,
     ]
     for test in tests:
         test()

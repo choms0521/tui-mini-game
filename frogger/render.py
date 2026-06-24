@@ -48,6 +48,20 @@ _SAFE_GLYPH  = " "
 _SLOT_EMPTY  = "v"
 _SLOT_FULL   = "X"
 
+# Detailed how-to shown as a centered overlay when the player presses ``h``.
+# Korean for players; keep each line width within the playfield width.
+HELP_LINES = [
+    "FROGGER  —  개구리 건너기",
+    "화살표  한 칸 이동",
+    "p 일시정지  r 재시작  q 종료",
+    "방향키로 개구리를 한 칸씩 옮깁니다.",
+    "차도에서는 자동차를 피하고, 강에서는",
+    "통나무에 올라타 함께 이동하되 물에",
+    "빠지면 죽습니다. 빈 목표 칸을 모두",
+    "채우면 클리어, 다 잃으면 게임 오버.",
+    "h 키로 도움말을 닫습니다",
+]
+
 
 def _pad(term: Terminal, text: str, width: int) -> str:
     """Right-pad *text* to a fixed printable width, ignoring colour escapes."""
@@ -137,12 +151,17 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
     lines = [
         term.bold("FROGGER"),
         "",
+        term.dim("차도와 강을 건너"),
+        term.dim("위쪽 목표 칸에"),
+        term.dim("도착하세요."),
+        "",
         f"Score    {state.score:>6}",
         f"Goals    {filled}/{B.NUM_GOALS}",
         f"Lives    {hearts}",
         "",
         term.dim("화살표  이동"),
         term.dim("p       일시정지"),
+        term.dim("h       도움말"),
         term.dim("r       재시작"),
         term.dim("q       종료"),
     ]
@@ -156,7 +175,19 @@ def _overlay(term: Terminal, text: str) -> str:
     return term.move_xy(x, y) + term.reverse(term.bold(f" {text} "))
 
 
-def draw(term: Terminal, state: G.GameState, paused: bool = False) -> None:
+def help_overlay(term: Terminal, lines: List[str]) -> str:
+    """Render *lines* as a centered reverse-video block over the playfield."""
+    inner = max(term.length(l) for l in lines)
+    x = BOARD_X + max(0, (_FIELD_WIDTH - inner - 2) // 2)
+    y = BOARD_Y + max(0, (B.HEIGHT - len(lines)) // 2)
+    parts: List[str] = []
+    for i, line in enumerate(lines):
+        pad = inner - term.length(line)
+        parts.append(term.move_xy(x, y + i) + term.reverse(term.bold(" " + line + " " * pad + " ")))
+    return "".join(parts)
+
+
+def draw(term: Terminal, state: G.GameState, paused: bool = False, show_help: bool = False) -> None:
     """Print the full frame to the terminal without clearing the screen."""
     frame: List[str] = [term.home]
 
@@ -171,7 +202,9 @@ def draw(term: Terminal, state: G.GameState, paused: bool = False) -> None:
             term.move_xy(panel_x, BOARD_Y + 1 + i) + _pad(term, line, PANEL_WIDTH)
         )
 
-    if state.game_over:
+    if show_help:
+        frame.append(help_overlay(term, HELP_LINES))
+    elif state.game_over:
         frame.append(_overlay(term, "GAME OVER  press r"))
     elif state.won:
         frame.append(_overlay(term, "YOU WIN!   press r"))

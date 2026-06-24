@@ -39,6 +39,24 @@ _RED_RGB = (200, 60, 60)
 _BLACK_RGB = (40, 40, 50)
 _BACK_RGB = (70, 90, 150)
 
+# Detailed how-to shown as a centered overlay. Here ``h`` is HIT, so only ``?``
+# toggles the help (see main.py). Korean for players.
+HELP_LINES = [
+    "BLACKJACK  —  블랙잭",
+    "",
+    "h    히트(카드 받기)",
+    "s    스탠드(멈추기)",
+    "r 새 판   q 종료",
+    "",
+    "h로 카드를 더 받고, s로 멈춥니다.",
+    "21을 넘으면 즉시 패배. 멈추면 딜러가",
+    "17 이상까지 받고, 더 높은 쪽이 승리",
+    "하며 같으면 무승부입니다. 첫 두 장",
+    "21(블랙잭)이 가장 강합니다. r 새 판.",
+    "",
+    "? 키로 도움말을 닫습니다",
+]
+
 
 def _pad(term: Terminal, text: str, width: int) -> str:
     """Right-pad *text* to a fixed printable width, ignoring escape codes."""
@@ -125,11 +143,16 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
     lines = [
         term.bold("BLACKJACK"),
         "",
+        term.dim("딜러와 겨루어 21에"),
+        term.dim("가깝게, 넘지 않게"),
+        term.dim("만드세요."),
+        "",
         dealer_total_text(term, state),
         f"Player  {G.hand_value(state.player_hand)}",
         "",
         term.dim("h       히트"),
         term.dim("s       스탠드"),
+        term.dim("?       도움말"),
         term.dim("r       새 판"),
         term.dim("q       종료"),
     ]
@@ -147,7 +170,22 @@ def _banner(term: Terminal, result: Optional[str]) -> str:
     return term.bold(term.yellow(" PUSH "))
 
 
-def draw(term: Terminal, state: G.GameState) -> None:
+def help_overlay(term: Terminal, lines: List[str]) -> str:
+    """Render *lines* as a centered reverse-video block over the card area."""
+    # The card area spans two hands of CARD_HEIGHT rows plus their labels and a
+    # separating blank line: 2 * CARD_HEIGHT + 3 rows from ORIGIN_Y.
+    content_height = 2 * CARD_HEIGHT + 3
+    inner = max(term.length(l) for l in lines)
+    x = ORIGIN_X + max(0, (CONTENT_WIDTH - inner - 2) // 2)
+    y = ORIGIN_Y + max(0, (content_height - len(lines)) // 2)
+    parts: List[str] = []
+    for i, line in enumerate(lines):
+        pad = inner - term.length(line)
+        parts.append(term.move_xy(x, y + i) + term.reverse(term.bold(" " + line + " " * pad + " ")))
+    return "".join(parts)
+
+
+def draw(term: Terminal, state: G.GameState, show_help: bool = False) -> None:
     """Compose and print the full frame without clearing the screen."""
     frame: List[str] = [term.home]
 
@@ -180,5 +218,8 @@ def draw(term: Terminal, state: G.GameState) -> None:
     panel_x = ORIGIN_X + CONTENT_WIDTH + PANEL_GAP
     for i, line in enumerate(panel_lines(term, state)):
         frame.append(term.move_xy(panel_x, ORIGIN_Y + i) + _pad(term, line, PANEL_WIDTH))
+
+    if show_help:
+        frame.append(help_overlay(term, HELP_LINES))
 
     print("".join(frame), end="", flush=True)

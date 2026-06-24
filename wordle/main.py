@@ -25,6 +25,10 @@ def _map_key(key) -> str | None:
     char = str(key).lower()
     if char == "q":
         return "quit"
+    # ``h`` is a needed letter (153 of the words contain H), so only ``?``
+    # toggles the help overlay here.
+    if char == "?":
+        return "help"
     if char.isalpha() and len(char) == 1:
         return f"letter:{char}"
     return None
@@ -35,6 +39,7 @@ def run() -> None:
     term = Terminal()
     rng = random.Random()
     state = G.new_game(rng)
+    show_help = False
     dirty = True
 
     with term.fullscreen(), term.cbreak(), term.hidden_cursor():
@@ -42,7 +47,7 @@ def run() -> None:
         try:
             while True:
                 if dirty:
-                    R.draw(term, state)
+                    R.draw(term, state, show_help=show_help)
                     dirty = False
 
                 key = term.inkey()
@@ -53,6 +58,15 @@ def run() -> None:
 
                 if action == "quit":
                     break
+
+                if action == "help":
+                    show_help = not show_help
+                    dirty = True
+                    continue
+
+                # While the help overlay is open, swallow every other key.
+                if show_help:
+                    continue
 
                 if state.game_over:
                     # Only quit and restart (r) are meaningful after game ends.

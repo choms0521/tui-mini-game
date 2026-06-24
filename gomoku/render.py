@@ -27,6 +27,25 @@ PANEL_WIDTH = 24
 _CELL_W = 2
 _ROW_WIDTH = B.COLS * _CELL_W
 
+# Detailed how-to shown as a centered overlay when the player presses ``h``/``?``.
+# Korean for players; each line stays within the board width.
+HELP_LINES = [
+    "GOMOKU  —  오목",
+    "",
+    "화살표      커서 이동",
+    "enter/space 착수",
+    "r 재시작   q 종료",
+    "",
+    "방향키로 커서를 옮기고",
+    "enter/space로 빈 교점에 돌을",
+    "놓습니다. 어느 방향이든 같은",
+    "색 5개가 연속으로 이어지면",
+    "승리합니다. AI가 위협을 막고",
+    "공격하니 앞을 내다보세요.",
+    "",
+    "h 키로 도움말을 닫습니다",
+]
+
 # Truecolor per stone value.
 _BLACK_RGB = (40, 40, 48)       # human (black) stone
 _WHITE_RGB = (235, 235, 240)    # AI (white) stone
@@ -99,6 +118,10 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
     lines = [
         term.bold("GOMOKU"),
         "",
+        term.dim("가로·세로·대각선으로"),
+        term.dim("같은 돌 5개를 먼저"),
+        term.dim("이으면 승리(AI 상대)."),
+        "",
         f"Turn   {turn}",
         f"You    {_stone_swatch(term, G.HUMAN)} black",
         f"AI     {_stone_swatch(term, G.AI)} white",
@@ -106,10 +129,23 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
         "",
         term.dim("화살표  이동"),          # arrows  move
         term.dim("enter/space 착수"),                  # enter/space place
+        term.dim("h       도움말"),                # h       help
         term.dim("r       재시작"),                # r       restart
         term.dim("q       종료"),                      # q       quit
     ]
     return lines
+
+
+def help_overlay(term: Terminal, lines: List[str]) -> str:
+    """Render *lines* as a centered reverse-video block over the board."""
+    inner = max(term.length(l) for l in lines)
+    x = BOARD_X + max(0, (_ROW_WIDTH - inner - 2) // 2)
+    y = BOARD_Y + max(0, (B.ROWS - len(lines)) // 2)
+    parts: List[str] = []
+    for i, line in enumerate(lines):
+        pad = inner - term.length(line)
+        parts.append(term.move_xy(x, y + i) + term.reverse(term.bold(" " + line + " " * pad + " ")))
+    return "".join(parts)
 
 
 def _overlay(term: Terminal, lines: List[str], width: int) -> str:
@@ -123,7 +159,7 @@ def _overlay(term: Terminal, lines: List[str], width: int) -> str:
     return "".join(parts)
 
 
-def draw(term: Terminal, state: G.GameState) -> None:
+def draw(term: Terminal, state: G.GameState, show_help: bool = False) -> None:
     """Compose and print the full frame without clearing the screen."""
     frame: List[str] = [term.home]
 
@@ -135,7 +171,9 @@ def draw(term: Terminal, state: G.GameState) -> None:
     for i, line in enumerate(panel_lines(term, state)):
         frame.append(term.move_xy(panel_x, BOARD_Y + i) + _pad(term, line, PANEL_WIDTH))
 
-    if state.game_over:
+    if show_help:
+        frame.append(help_overlay(term, HELP_LINES))
+    elif state.game_over:
         if state.winner == G.HUMAN:
             banner = term.bold(term.green(" YOU WIN! "))
         elif state.winner == G.AI:

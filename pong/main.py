@@ -28,6 +28,8 @@ def _map_key(key) -> str | None:
         "w": "up",
         "s": "down",
         "q": "quit",
+        "h": "help",
+        "?": "help",
         " ": "space",
         "r": "restart",
     }.get(char)
@@ -52,6 +54,7 @@ def run() -> None:
 
     rng = random.Random()
     state = G.new_game(rng)
+    show_help = False
     dirty = True
     last_tick = time.monotonic()
 
@@ -60,7 +63,7 @@ def run() -> None:
         try:
             while True:
                 if dirty:
-                    R.draw(term, state)
+                    R.draw(term, state, show_help=show_help)
                     dirty = False
 
                 key = term.inkey(timeout=POLL_TIMEOUT)
@@ -68,11 +71,16 @@ def run() -> None:
                     action = _map_key(key)
                     if action == "quit":
                         break
-                    elif action == "restart":
-                        state = G.new_game(rng)
+                    elif action == "help":
+                        show_help = not show_help
                         last_tick = time.monotonic()
                         dirty = True
-                    elif action == "space":
+                    elif action == "restart":
+                        state = G.new_game(rng)
+                        show_help = False
+                        last_tick = time.monotonic()
+                        dirty = True
+                    elif action == "space" and not show_help:
                         if not state.started and not state.game_over:
                             state = G.start(state)
                             last_tick = time.monotonic()
@@ -81,15 +89,15 @@ def run() -> None:
                             state = G.toggle_pause(state)
                             last_tick = time.monotonic()
                             dirty = True
-                    elif action == "up" and not state.paused and not state.game_over:
+                    elif action == "up" and not show_help and not state.paused and not state.game_over:
                         state = G.move_player(state, -C.PADDLE_STEP)
                         dirty = True
-                    elif action == "down" and not state.paused and not state.game_over:
+                    elif action == "down" and not show_help and not state.paused and not state.game_over:
                         state = G.move_player(state, C.PADDLE_STEP)
                         dirty = True
 
                 now = time.monotonic()
-                if state.started and not state.paused and not state.game_over:
+                if state.started and not show_help and not state.paused and not state.game_over:
                     if now - last_tick >= C.BALL_TICK:
                         state = G.tick(state, rng)
                         last_tick = now

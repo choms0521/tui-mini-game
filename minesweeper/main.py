@@ -35,6 +35,8 @@ def _map_key(key) -> str | None:
         "f": "flag",
         "r": "restart",
         "q": "quit",
+        "h": "help",
+        "?": "help",
     }.get(char)
 
 
@@ -43,6 +45,7 @@ def run() -> None:
     term = Terminal()
     rng = random.Random()
     state = G.new_game(rng)
+    show_help = False
     dirty = True
 
     with term.fullscreen(), term.cbreak(), term.hidden_cursor():
@@ -50,7 +53,7 @@ def run() -> None:
         try:
             while True:
                 if dirty:
-                    R.draw(term, state)
+                    R.draw(term, state, show_help=show_help)
                     dirty = False
 
                 key = term.inkey(timeout=POLL_TIMEOUT)
@@ -60,9 +63,15 @@ def run() -> None:
                 action = _map_key(key)
                 if action == "quit":
                     break
+                elif action == "help":
+                    show_help = not show_help
+                    dirty = True
                 elif action == "restart":
                     state = G.restart(rng, state)
+                    show_help = False
                     dirty = True
+                elif show_help:
+                    pass  # skip gameplay actions while help is visible
                 elif action == "up":
                     new_state = G.move_cursor(state, -1, 0)
                     if new_state is not state:

@@ -23,12 +23,33 @@ PANEL_WIDTH = 24
 # always pads to this fixed height so the taller frame's trailing control lines
 # get overwritten with blanks once the notice disappears (there is no
 # full-screen clear between frames). Bump this if the panel gains more lines.
-PANEL_HEIGHT = 12
+PANEL_HEIGHT = 18
 
 # Each cell is 3 chars wide with no separator: the green background tiles join
 # into one continuous board.
 _CELL_WIDTH = 3
 _ROW_WIDTH = B.SIZE * _CELL_WIDTH
+
+# Detailed how-to shown as a centered overlay when the player presses ``h``/``?``.
+# Korean for players. The 8x8 board is narrow, so the modal is a touch wider than
+# the board; help_overlay clamps its origin so it still composes cleanly on top.
+HELP_LINES = [
+    "REVERSI  —  리버시",
+    "",
+    "화살표      커서 이동",
+    "enter/space 돌 놓기",
+    "r 재시작   q 종료",
+    "",
+    "방향키로 커서를 옮기고 enter/",
+    "space로 돌을 놓습니다. 한 방향",
+    "이상에서 상대 돌을 자기 돌",
+    "사이에 끼우는 자리에만 둘 수",
+    "있고, 끼인 돌은 모두 뒤집힙니다.",
+    "둘 곳이 없으면 패스, 끝났을 때",
+    "돌이 많은 쪽이 승리합니다.",
+    "",
+    "h 키로 도움말을 닫습니다",
+]
 
 # Truecolor palette.
 _BLACK_RGB = (30, 30, 35)        # black disc glyph
@@ -111,6 +132,11 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
     lines = [
         term.bold("REVERSI"),
         "",
+        term.dim("상대 돌을 양끝으로"),
+        term.dim("둘러싸 뒤집고,"),
+        term.dim("끝에 돌이 많은 쪽이"),
+        term.dim("이기는 게임(AI)."),
+        "",
         f"Turn   {turn}",
         f"You    {_disc_glyph(term, G.HUMAN)} black  {black}",
         f"AI     {_disc_glyph(term, G.AI)} white  {white}",
@@ -137,6 +163,7 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
     lines.extend([
         term.dim("화살표    이동"),       # arrows: move
         term.dim("enter/space 놓기"),                 # place
+        term.dim("h       도움말"),               # help
         term.dim("r       재시작"),               # restart
         term.dim("q       종료"),                     # quit
     ])
@@ -145,6 +172,18 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
     if len(lines) < PANEL_HEIGHT:
         lines.extend([""] * (PANEL_HEIGHT - len(lines)))
     return lines
+
+
+def help_overlay(term: Terminal, lines: List[str]) -> str:
+    """Render *lines* as a centered reverse-video block over the board."""
+    inner = max(term.length(l) for l in lines)
+    x = BOARD_X + max(0, (_ROW_WIDTH - inner - 2) // 2)
+    y = max(0, ((term.height or len(lines)) - len(lines)) // 2)
+    parts: List[str] = []
+    for i, line in enumerate(lines):
+        pad = inner - term.length(line)
+        parts.append(term.move_xy(x, y + i) + term.reverse(term.bold(" " + line + " " * pad + " ")))
+    return "".join(parts)
 
 
 def _overlay(term: Terminal, lines: List[str], width: int) -> str:
@@ -158,7 +197,7 @@ def _overlay(term: Terminal, lines: List[str], width: int) -> str:
     return "".join(parts)
 
 
-def draw(term: Terminal, state: G.GameState) -> None:
+def draw(term: Terminal, state: G.GameState, show_help: bool = False) -> None:
     """Compose and print the full frame without clearing the screen."""
     frame: List[str] = [term.home]
 
@@ -170,7 +209,9 @@ def draw(term: Terminal, state: G.GameState) -> None:
     for i, line in enumerate(panel_lines(term, state)):
         frame.append(term.move_xy(panel_x, BOARD_Y + i) + _pad(term, line, PANEL_WIDTH))
 
-    if state.game_over:
+    if show_help:
+        frame.append(help_overlay(term, HELP_LINES))
+    elif state.game_over:
         if state.winner == G.HUMAN:
             banner = term.bold(term.green(" YOU WIN! "))
         elif state.winner == G.AI:

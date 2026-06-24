@@ -38,6 +38,25 @@ _LABEL_W = 3           # left row-number gutter ("10 ", " 9 ", ...)
 _BOARD_WIDTH = _LABEL_W + B.COLS * _CELL_W
 _COLS_LETTERS = "ABCDEFGHIJ"
 
+# Detailed how-to shown as a centered overlay when the player presses ``h``/``?``.
+# Korean for players; each line stays within the combined width of the two boards.
+HELP_LINES = [
+    "BATTLESHIP  —  해전",
+    "",
+    "화살표      조준 이동",
+    "enter/space 사격",
+    "r 재시작   q 종료",
+    "",
+    "방향키로 추적판의 조준 위치를 옮기고",
+    "enter/space로 사격합니다. 명중(빨강),",
+    "빗맞음, 격침이 표시되며 적과 번갈아",
+    "한 발씩 쏩니다. 명중 주변을 노려",
+    "함선을 추적하세요. 적 함대 5척을",
+    "먼저 모두 격침하면 승리.",
+    "",
+    "h 키로 도움말을 닫습니다",
+]
+
 # Truecolor palette.
 _SHIP_RGB = (90, 150, 220)       # own ship block
 _SUNK_RGB = (235, 90, 90)        # a sunk ship's cells (both boards)
@@ -154,12 +173,17 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
     lines: List[str] = [
         term.bold("BATTLESHIP"),
         "",
+        term.dim("가려진 적 함대를"),
+        term.dim("사격으로 찾아"),
+        term.dim("모두 격침하세요."),
+        "",
         f"Turn       {turn}",
         f"Enemy left {player_left:>2}",
         f"Yours left {ai_left:>2}",
         "",
         term.dim("화살표  조준"),
         term.dim("enter/space 사격"),
+        term.dim("h       도움말"),
         term.dim("r       재시작"),
         term.dim("q       종료"),
     ]
@@ -175,7 +199,20 @@ def panel_lines(term: Terminal, state: G.GameState) -> List[str]:
     return lines
 
 
-def draw(term: Terminal, state: G.GameState) -> None:
+def help_overlay(term: Terminal, lines: List[str]) -> str:
+    """Render *lines* as a centered reverse-video block over the two boards."""
+    board_block_width = _BOARD_WIDTH + BOARD_GAP + _BOARD_WIDTH
+    inner = max(term.length(l) for l in lines)
+    x = BOARD_X + max(0, (board_block_width - inner - 2) // 2)
+    y = max(0, ((term.height or len(lines)) - len(lines)) // 2)
+    parts: List[str] = []
+    for i, line in enumerate(lines):
+        pad = inner - term.length(line)
+        parts.append(term.move_xy(x, y + i) + term.reverse(term.bold(" " + line + " " * pad + " ")))
+    return "".join(parts)
+
+
+def draw(term: Terminal, state: G.GameState, show_help: bool = False) -> None:
     """Compose and print the full frame without clearing the screen."""
     frame: List[str] = [term.home]
 
@@ -191,5 +228,8 @@ def draw(term: Terminal, state: G.GameState) -> None:
         frame.append(
             term.move_xy(panel_x, BOARD_Y + i) + _pad(term, line, PANEL_WIDTH)
         )
+
+    if show_help:
+        frame.append(help_overlay(term, HELP_LINES))
 
     print("".join(frame), end="", flush=True)

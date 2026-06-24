@@ -26,7 +26,7 @@ def _map_key(key) -> str | None:
     if key.name == "KEY_DOWN":
         return "down"
     char = str(key).lower()
-    return {"q": "quit", "r": "restart"}.get(char)
+    return {"q": "quit", "r": "restart", "h": "help", "?": "help"}.get(char)
 
 
 def run() -> None:
@@ -34,6 +34,7 @@ def run() -> None:
     term = Terminal()
     rng = random.Random()
     state = G.new_game(rng)
+    show_help = False
     dirty = True
 
     with term.fullscreen(), term.cbreak(), term.hidden_cursor():
@@ -41,7 +42,7 @@ def run() -> None:
         try:
             while True:
                 if dirty:
-                    R.draw(term, state)
+                    R.draw(term, state, show_help=show_help)
                     dirty = False
 
                 key = term.inkey(timeout=POLL_TIMEOUT)
@@ -51,10 +52,14 @@ def run() -> None:
                 action = _map_key(key)
                 if action == "quit":
                     break
-                if action == "restart":
-                    state = G.new_game(rng)
+                if action == "help":
+                    show_help = not show_help
                     dirty = True
-                elif action in ("left", "right", "up", "down"):
+                elif action == "restart":
+                    state = G.new_game(rng)
+                    show_help = False
+                    dirty = True
+                elif action in ("left", "right", "up", "down") and not show_help:
                     new_state = G.move(state, action, rng)
                     if new_state is not state:
                         state = new_state

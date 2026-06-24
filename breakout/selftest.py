@@ -143,6 +143,8 @@ def test_render_builds_strings() -> None:
     check(len(board) == C.PLAY_H + 2, "board renders all rows plus two borders")
     panel = R.panel_lines(term, s)
     check(any("BREAKOUT" in line for line in panel), "panel shows the title")
+    check(any("벽돌" in line for line in panel), "panel shows the Korean how-to summary")
+    check(all(term.length(line) <= R.PANEL_WIDTH for line in panel), "every panel line fits PANEL_WIDTH")
 
     launched = G.launch(s)
     over = G.GameState(paddle_x=s.paddle_x, ball=s.ball, bricks=s.bricks, game_over=True)
@@ -150,7 +152,8 @@ def test_render_builds_strings() -> None:
         R.draw(term, s)          # unlaunched -> launch hint overlay
         R.draw(term, launched, paused=True)
         R.draw(term, over)       # game over overlay
-    check(True, "draw() composes launch, paused, and game-over frames without error")
+        R.draw(term, s, show_help=True)   # help overlay composes
+    check(True, "draw() composes launch, paused, game-over, and help frames without error")
 
 
 def main() -> None:

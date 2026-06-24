@@ -369,6 +369,19 @@ def test_render_builds_strings() -> None:
     check(True, "draw() composes normal and game-over frames without error")
 
 
+def test_howto_panel_and_help() -> None:
+    term = Terminal(force_styling=True)
+    state = G.new_game(random.Random(37))
+
+    panel = R.panel_lines(term, state)
+    check(any("던전" in line for line in panel), "panel shows the Korean how-to summary")
+    check(all(term.length(line) <= R.PANEL_WIDTH for line in panel), "every panel line fits PANEL_WIDTH")
+
+    with redirect_stdout(io.StringIO()):
+        R.draw(term, state, show_help=True)
+    check(True, "draw(show_help=True) composes the help overlay without error")
+
+
 # ---------------------------------------------------------------------------
 # Runner
 # ---------------------------------------------------------------------------
@@ -388,6 +401,7 @@ def main() -> None:
         test_game_over_when_hp_reaches_zero,
         test_immutability,
         test_render_builds_strings,
+        test_howto_panel_and_help,
     ]
     for test in tests:
         test()
