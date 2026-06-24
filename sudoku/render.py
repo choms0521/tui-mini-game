@@ -118,7 +118,7 @@ def help_overlay(term: Terminal, lines: List[str]) -> str:
     # board_w is computed dynamically; use the known rule width as approximation
     board_w = B.BOX * (B.BOX * _CELL_W + 1) + 1
     x = BOARD_X + 1 + max(0, (board_w - inner - 2) // 2)
-    y = BOARD_Y + 1
+    y = max(0, ((term.height or len(lines)) - len(lines)) // 2)
     parts: List[str] = []
     for i, line in enumerate(lines):
         pad = inner - term.length(line)
