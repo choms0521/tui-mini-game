@@ -13,12 +13,13 @@ existing game and to every game added in the future.**
 | `render.py` | `blessed` truecolor rendering. Flicker-free: compose one frame, print after `term.home`, pad every line to a fixed width with `term.length`. |
 | `main.py` | `blessed` input loop (entry point). |
 | `selftest.py` | Headless self-test; `python selftest.py` exits 0 on pass. |
-| `meta.json` | Launcher metadata: `{"name", "description", "entry": "main.py"}`. |
+| `meta.json` | Optional launcher metadata: `{"name", "description", "entry": "main.py"}`. Without it the launcher uses the folder name. |
 | `run.sh` | Executable launch wrapper (copy an existing game's `run.sh`). |
 
 Core principles: immutable state (use `dataclasses.replace`, never mutate); inject a
 `random.Random` for any randomness so tests stay deterministic; keep `game.py` free of
-`blessed`; the launcher auto-discovers games via `meta.json` (no launcher edits needed).
+`blessed`; the launcher auto-discovers any folder with a runnable `main.py` (`meta.json`
+is optional and only enriches the menu entry), so no launcher edits are needed.
 
 ## In-game how-to (REQUIRED for every game)
 

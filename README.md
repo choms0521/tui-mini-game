@@ -94,7 +94,7 @@ mini-game/
 ├── requirements.txt  # shared dependencies (blessed)
 ├── play.sh           # launcher menu (runs each game as a child process)
 ├── launcher/         # menu: discovery + render + selftest
-├── docs/             # README-ko / play guide / plans
+├── docs/             # PLAY-ko.md (Korean guide), game candidates, plans
 ├── tetris/           # each game folder: main.py + meta.json + selftest.py
 ├── breakout/
 ├── snake/

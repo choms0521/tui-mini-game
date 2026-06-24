@@ -71,8 +71,11 @@ def check_game(term: Terminal, root: str, game: str) -> list[str]:
     """Return a list of failure messages (empty == pass)."""
     failures: list[str] = []
     d = os.path.join(root, game)
-    sys.path.insert(0, d)
     cwd = os.getcwd()
+    if not os.path.isdir(d):
+        failures.append(f"{game}: folder not found at {d}")
+        return failures
+    sys.path.insert(0, d)
     os.chdir(d)
     for mod in ("config", "board", "pieces", "dungeon", "levels", "words",
                 "cards", "solver", "game", "render"):
@@ -81,6 +84,11 @@ def check_game(term: Terminal, root: str, game: str) -> list[str]:
         G = importlib.import_module("game")
         R = importlib.import_module("render")
         state = _build_state(G)
+        if state is None:
+            failures.append(
+                f"{game}: could not build a game state "
+                f"(no new_game/new_state/initial_state/start)")
+            return failures
         panel = R.panel_lines(term, state)
         pw = getattr(R, "PANEL_WIDTH", None)
         if pw is None:
@@ -122,7 +130,8 @@ def check_game(term: Terminal, root: str, game: str) -> list[str]:
     except Exception as exc:  # pragma: no cover - import/registration errors
         failures.append(f"{game}: ERROR {type(exc).__name__}: {exc}")
     finally:
-        sys.path.remove(d)
+        if d in sys.path:
+            sys.path.remove(d)
         os.chdir(cwd)
     return failures
 
